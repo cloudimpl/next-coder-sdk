@@ -88,15 +88,20 @@ func (q Query) Count(ctx context.Context) (int, error) {
 func (q Query) All(ctx context.Context, ret interface{}) error {
 	r, err := q.collection.db.client.QueryItems(q.collection.db.sessionId, q.collection.name, q.filter, q.args, q.limit)
 	if err != nil {
+		println("error queryitem ", err.Error())
 		return err
 	}
 
 	b, err := json.Marshal(r)
 	if err != nil {
+		println("error marshal queryitem ", err.Error())
 		return err
 	}
+
+	println("query all ", string(b))
 	err = json.Unmarshal(b, ret)
 	if err != nil {
+		println("error unmarshal queryitem ", err.Error())
 		return err
 	}
 	return nil
