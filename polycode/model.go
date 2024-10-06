@@ -23,6 +23,11 @@ func (t TaskOptions) WithPartitionKey(partitionKey string) TaskOptions {
 	return t
 }
 
+func (t TaskOptions) WithTimeout(timeout time.Duration) TaskOptions {
+	t.Timeout = timeout
+	return t
+}
+
 type TaskInput struct {
 	Checksum  uint64 `json:"checksum"`
 	NoArg     bool   `json:"noArg"`
