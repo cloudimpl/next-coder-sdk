@@ -82,6 +82,8 @@ func (c *Client) GetItem(sessionId string, collection, key string, filter string
 		println("GetItem", err.Error())
 		return nil, err
 	}
+
+	println(fmt.Sprintf("db get received "))
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -94,6 +96,7 @@ func (c *Client) GetItem(sessionId string, collection, key string, filter string
 		return nil, err
 	}
 
+	println(fmt.Sprintf("db get received response %v", result))
 	return result, nil
 }
 
