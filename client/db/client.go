@@ -83,6 +83,9 @@ func (c *Client) GetItem(sessionId string, collection, key string, filter string
 		return nil, err
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get item, status: %v", resp.Status)
+	}
 	println(fmt.Sprintf("db get received"))
 	defer resp.Body.Close()
 
@@ -120,6 +123,9 @@ func (c *Client) QueryItems(sessionId, collection, filter string, args []any, li
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to query items, status: %v", resp.Status)
+	}
 	var result []map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
