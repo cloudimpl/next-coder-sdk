@@ -52,7 +52,7 @@ func CreateTaskCompleteEvent(output polycode.TaskOutput, tx *db.Tx) *TaskComplet
 func NewServiceClient(baseURL string) *ServiceClient {
 	return &ServiceClient{
 		httpClient: &http.Client{
-			Timeout: time.Second * 10, // Set a reasonable timeout for HTTP requests
+			Timeout: time.Second * 30, // Set a reasonable timeout for HTTP requests
 		},
 		baseURL: baseURL,
 		urlCache: UrlCache{
