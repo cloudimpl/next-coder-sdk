@@ -21,6 +21,11 @@ type ServiceContext struct {
 	db        polycode.Database
 	fileStore polycode.FileStore
 	option    polycode.TaskOptions
+	config    polycode.AppConfig
+}
+
+func (s ServiceContext) AppConfig() polycode.AppConfig {
+	return s.config
 }
 
 func (s ServiceContext) Option() polycode.TaskOptions {
@@ -55,6 +60,11 @@ type WorkflowContext struct {
 	ctx           context.Context
 	sessionId     string
 	serviceClient *ServiceClient
+	config        polycode.AppConfig
+}
+
+func (A WorkflowContext) AppConfig() polycode.AppConfig {
+	return A.config
 }
 
 func (A WorkflowContext) Deadline() (deadline time.Time, ok bool) {

@@ -7,6 +7,7 @@ import (
 type ServiceContext interface {
 	context.Context
 	Db() Database
+	AppConfig() AppConfig
 	FileStore() FileStore
 	Option() TaskOptions
 }
@@ -21,6 +22,7 @@ type ReadOnlyServiceContext interface {
 type WorkflowContext interface {
 	context.Context
 	Service(serviceId string) (RemoteService, error)
+	AppConfig() AppConfig
 	LocalService() (RemoteService, error)
 }
 
