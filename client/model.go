@@ -30,3 +30,6 @@ type TaskContext struct {
 	SessionId  string `json:"sessionId"`
 	EntryPoint string `json:"entryPoint"`
 }
+
+type StartAppRequest struct {
+}

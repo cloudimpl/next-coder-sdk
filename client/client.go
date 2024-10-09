@@ -90,6 +90,25 @@ func NewServiceClient(baseURL string) *ServiceClient {
 //	return output.SessionId, nil
 //}
 
+func (sc *ServiceClient) StartApp(req StartAppRequest) error {
+
+	b, err := json.Marshal(req)
+	if err != nil {
+		return fmt.Errorf("failed to marshal JSON: %w", err)
+	}
+	resp, err := sc.httpClient.Post(fmt.Sprintf("%s/v1/system/app/start", sc.baseURL), "application/json", bytes.NewBuffer(b))
+	if err != nil {
+		return fmt.Errorf("failed to make HTTP request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check if the response status code is 200 OK
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+	return nil
+}
+
 func (sc *ServiceClient) completeTask(sessionId string, completeEvent *TaskCompleteEvent) error {
 	b, err := json.Marshal(completeEvent)
 	if err != nil {
