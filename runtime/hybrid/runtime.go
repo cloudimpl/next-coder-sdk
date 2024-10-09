@@ -11,6 +11,10 @@ type Runtime struct {
 	runtime polycode.Runtime
 }
 
+func (r Runtime) AppConfig() polycode.AppConfig {
+	return r.runtime.AppConfig()
+}
+
 func (r Runtime) Name() string {
 	return "Hybrid"
 }
