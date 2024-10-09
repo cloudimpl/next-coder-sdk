@@ -10,7 +10,7 @@ type AppConfig map[string]interface{}
 func FromAppConfig(ctx context.Context, configObj any) {
 	srvCtx, ok := ctx.(ServiceContext)
 	if ok {
-		ret := srvCtx.Config()
+		ret := srvCtx.AppConfig()
 		b, err := json.Marshal(configObj)
 		if err != nil {
 			panic(err)
@@ -23,7 +23,7 @@ func FromAppConfig(ctx context.Context, configObj any) {
 	}
 	wkfCtx, ok := ctx.(WorkflowContext)
 	if ok {
-		ret := wkfCtx.Config()
+		ret := wkfCtx.AppConfig()
 		b, err := json.Marshal(configObj)
 		if err != nil {
 			panic(err)

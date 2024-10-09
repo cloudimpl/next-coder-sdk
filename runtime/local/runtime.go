@@ -8,13 +8,42 @@ import (
 	"github.com/CloudImpl-Inc/next-coder-sdk/client/db"
 	"github.com/CloudImpl-Inc/next-coder-sdk/polycode"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/yaml.v2"
 	"io"
+	"log"
+	"os"
 )
 
 //var runtime *Runtime = nil
 
 type Runtime struct {
 	dbClient *db.Client
+}
+
+func (r *Runtime) AppConfig() polycode.AppConfig {
+	// Load the YAML file
+	yamlFile := "application.yml" // The path to your YAML file
+	var yamlData interface{}
+
+	data, err := os.ReadFile(yamlFile)
+	if os.IsNotExist(err) {
+		log.Println("application.yml not found. Generating empty config...")
+		yamlData = make(map[string]interface{}) // Create an empty config
+	} else if err != nil {
+		fmt.Printf("Error reading YAML file: %v\n", err)
+		os.Exit(1)
+	} else {
+		// Parse the YAML file into a map
+		err = yaml.Unmarshal(data, &yamlData)
+		if err != nil {
+			fmt.Printf("Error unmarshalling YAML: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	// Convert map[interface{}]interface{} to map[string]interface{}
+	yamlData = polycode.ConvertMap(yamlData)
+	return yamlData.(map[string]interface{})
 }
 
 func (r *Runtime) GetRuntime() polycode.Runtime {

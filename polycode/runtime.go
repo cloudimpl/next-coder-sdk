@@ -17,6 +17,7 @@ var currentRuntime Runtime = nil
 
 type Runtime interface {
 	Name() string
+	AppConfig() AppConfig
 	Start(params []any) error
 }
 

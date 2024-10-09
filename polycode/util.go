@@ -60,3 +60,20 @@ func GetTypeNameWithPkg[T any](value T) (string, string) {
 func IsPointer(data interface{}) bool {
 	return reflect.TypeOf(data).Kind() == reflect.Ptr
 }
+
+// Helper function to convert map[interface{}]interface{} to map[string]interface{}
+func ConvertMap(m interface{}) interface{} {
+	switch x := m.(type) {
+	case map[interface{}]interface{}:
+		converted := make(map[string]interface{})
+		for k, v := range x {
+			converted[k.(string)] = ConvertMap(v) // Recursively convert values
+		}
+		return converted
+	case []interface{}:
+		for i, v := range x {
+			x[i] = ConvertMap(v)
+		}
+	}
+	return m
+}

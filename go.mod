@@ -4,6 +4,7 @@ require (
 	github.com/apex/gateway v1.1.2
 	github.com/aws/aws-lambda-go v1.47.0
 	github.com/gin-gonic/gin v1.10.0
+	gopkg.in/yaml.v2 v2.2.2
 )
 
 require (

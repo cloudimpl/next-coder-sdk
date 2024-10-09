@@ -69,6 +69,7 @@ func _RunTask(ctx RuntimeContext, runtime RuntimeSupport, event Event) (evt *Tas
 			ctx:           ctx,
 			sessionId:     event.Context.SessionId,
 			serviceClient: getServiceClient(),
+			config:        runtime.GetRuntime().AppConfig(),
 		}
 		ret, err := runtime.InvokeWorkflow(workflowCtx, event.TaskInput)
 		if err != nil {
@@ -106,6 +107,7 @@ func _RunTask(ctx RuntimeContext, runtime RuntimeSupport, event Event) (evt *Tas
 				ctx:           ctx,
 				sessionId:     event.Context.SessionId,
 				serviceClient: getServiceClient(),
+				config:        runtime.GetRuntime().AppConfig(),
 			}
 			ret, err = service.ExecuteWorkflow(workflowCtx, event.Context.EntryPoint, inputObj)
 		} else {
@@ -113,6 +115,7 @@ func _RunTask(ctx RuntimeContext, runtime RuntimeSupport, event Event) (evt *Tas
 				ctx:       ctx,
 				sessionId: event.Context.SessionId,
 				db:        db,
+				config:    runtime.GetRuntime().AppConfig(),
 			}
 			ret, err = service.ExecuteService(srvCtx, event.Context.EntryPoint, inputObj)
 		}
