@@ -26,6 +26,7 @@ func SetCurrentRuntime(runtime Runtime) {
 	if currentRuntime != nil {
 		println("Current runtime already set.ignored")
 	}
+	fmt.Printf("runtime %s set\n", runtime.Name())
 	currentRuntime = runtime
 }
 
