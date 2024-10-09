@@ -11,13 +11,11 @@ type Runtime struct {
 }
 
 func (r Runtime) Name() string {
-	//TODO implement me
-	panic("implement me")
+	return "V2"
 }
 
 func (r Runtime) AppConfig() polycode.AppConfig {
-	//TODO implement me
-	panic("implement me")
+	return polycode.AppConfig{}
 }
 
 func (r *Runtime) OnRequest(c *gin.Context) {
