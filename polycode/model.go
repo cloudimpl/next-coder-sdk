@@ -16,6 +16,7 @@ type TaskOptions struct {
 	RetryOnFail     bool             // Whether to retry the task automatically on failure
 	BackoffStrategy *BackoffStrategy // Backoff strategy for handling retries
 	PartitionKey    string
+	TenantId        string
 }
 
 func (t TaskOptions) WithPartitionKey(partitionKey string) TaskOptions {
