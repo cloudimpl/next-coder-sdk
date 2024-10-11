@@ -37,17 +37,32 @@ func (c Collection) InsertOne(item interface{}) error {
 		Item:       mapItems,
 	})
 	return nil
-	//b, err := json.Marshal(item)
-	//if err != nil {
-	//	return fmt.Errorf("failed to marshal JSON: %w", err)
-	//}
-	//
-	//var mapItems map[string]interface{}
-	//err = json.Unmarshal(b, &mapItems)
-	//if err != nil {
-	//	return fmt.Errorf("failed to unmarshal JSON: %w", err)
-	//}
-	//return c.db.client.InsertItem(c.db.sessionId, c.name, id, mapItems)
+}
+
+func (c Collection) UpdateOne(item interface{}) error {
+	id, err := GetId(item)
+	if err != nil {
+		return err
+	}
+
+	b, err := json.Marshal(item)
+	if err != nil {
+		return fmt.Errorf("failed to marshal JSON: %w", err)
+	}
+
+	var mapItems map[string]interface{}
+	err = json.Unmarshal(b, &mapItems)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %w", err)
+	}
+
+	c.dbTx.Operations = append(c.dbTx.Operations, Operation{
+		Action:     "update",
+		Collection: c.name,
+		Key:        id,
+		Item:       mapItems,
+	})
+	return nil
 }
 
 func (c Collection) DeleteOne(key string) error {
