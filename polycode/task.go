@@ -87,7 +87,7 @@ func sendStartApp(port int) {
 
 func Start(params ...any) {
 	if len(params) == 1 {
-		g, ok := params[1].(*gin.Engine)
+		g, ok := params[0].(*gin.Engine)
 		if ok {
 			httpHandler = g.Handler()
 		}
@@ -100,12 +100,14 @@ func Start(params ...any) {
 }
 
 func invokeApiHandler(c *gin.Context) {
+	println("client: api request received")
 	input := c.Request
 	output := runTask(nil, input)
 	c.JSON(http.StatusOK, output)
 }
 
 func invokeServiceHandler(c *gin.Context) {
+	println("client: service request received")
 	var input TaskStartEvent
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
