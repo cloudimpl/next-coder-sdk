@@ -2,11 +2,10 @@ package polycode
 
 import (
 	"encoding/base64"
-	client2 "github.com/CloudImpl-Inc/next-coder-sdk/client"
 )
 
 type FileStore struct {
-	client    *client2.ServiceClient
+	client    *ServiceClient
 	sessionId string
 }
 
@@ -19,13 +18,13 @@ func (d FileStore) Folder(name string) Folder {
 }
 
 type Folder struct {
-	client    *client2.ServiceClient
+	client    *ServiceClient
 	sessionId string
 	name      string
 }
 
 func (f Folder) Load(name string) ([]byte, error) {
-	req := client2.GetFileRequest{
+	req := GetFileRequest{
 		Key: f.name + "/" + name,
 	}
 
@@ -46,7 +45,7 @@ func (f Folder) Load(name string) ([]byte, error) {
 func (f Folder) Save(name string, data []byte) error {
 	// Encode the data as base64
 	base64Data := base64.StdEncoding.EncodeToString(data)
-	req := client2.PutFileRequest{
+	req := PutFileRequest{
 		Key:     f.name + "/" + name,
 		Content: base64Data,
 	}
@@ -59,7 +58,7 @@ func (f Folder) Save(name string, data []byte) error {
 	return nil
 }
 
-func NewFileStore(client *client2.ServiceClient, sessionId string) FileStore {
+func NewFileStore(client *ServiceClient, sessionId string) FileStore {
 	return FileStore{
 		client:    client,
 		sessionId: sessionId,

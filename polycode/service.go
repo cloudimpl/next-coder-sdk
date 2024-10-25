@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/CloudImpl-Inc/next-coder-sdk/client"
 )
 
 var mainService Service = nil
@@ -36,7 +35,7 @@ type RemoteService struct {
 	ctx           context.Context
 	sessionId     string
 	serviceId     string
-	serviceClient *client.ServiceClient
+	serviceClient *ServiceClient
 }
 
 func (r RemoteService) RequestReply(options TaskOptions, method string, input any) Future {
@@ -49,7 +48,7 @@ func (r RemoteService) RequestReply(options TaskOptions, method string, input an
 		NoArg:     false,
 		TargetReq: string(b),
 	}
-	req := client.ExecRequest{
+	req := ExecRequest{
 		ServiceId:  r.serviceId,
 		EntryPoint: method,
 		Options:    options,

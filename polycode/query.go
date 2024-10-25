@@ -3,7 +3,6 @@ package polycode
 import (
 	"context"
 	"encoding/json"
-	"github.com/CloudImpl-Inc/next-coder-sdk/client"
 )
 
 // Order is used for specifying the order of results.
@@ -86,7 +85,7 @@ func (q Query) Order(order Order) Query {
 }
 
 func (q Query) One(ctx context.Context, ret interface{}) error {
-	req := client.QueryRequest{
+	req := QueryRequest{
 		Collection: q.collection.name,
 		Key:        "",
 		Filter:     q.filter,
@@ -113,7 +112,7 @@ func (q Query) Count(ctx context.Context) (int, error) {
 }
 
 func (q Query) All(ctx context.Context, ret interface{}) error {
-	req := client.QueryRequest{
+	req := QueryRequest{
 		Collection: q.collection.name,
 		Key:        "",
 		Filter:     q.filter,

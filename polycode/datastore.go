@@ -3,12 +3,11 @@ package polycode
 import (
 	"encoding/json"
 	"fmt"
-	client "github.com/CloudImpl-Inc/next-coder-sdk/client"
 	"reflect"
 )
 
 type DataStore struct {
-	client    *client.ServiceClient
+	client    *ServiceClient
 	sessionId string
 }
 
@@ -21,7 +20,7 @@ func (d DataStore) Collection(name string) Collection {
 }
 
 type Collection struct {
-	client    *client.ServiceClient
+	client    *ServiceClient
 	sessionId string
 	name      string
 }
@@ -43,7 +42,7 @@ func (c Collection) InsertOne(item interface{}) error {
 		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
-	req := client.PutRequest{
+	req := PutRequest{
 		Action:     "insert",
 		Collection: c.name,
 		Key:        id,
@@ -75,7 +74,7 @@ func (c Collection) UpdateOne(item interface{}) error {
 		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
-	req := client.PutRequest{
+	req := PutRequest{
 		Action:     "update",
 		Collection: c.name,
 		Key:        id,
@@ -91,7 +90,7 @@ func (c Collection) UpdateOne(item interface{}) error {
 }
 
 func (c Collection) DeleteOne(key string) error {
-	req := client.PutRequest{
+	req := PutRequest{
 		Action:     "delete",
 		Collection: c.name,
 		Key:        key,
@@ -106,7 +105,7 @@ func (c Collection) DeleteOne(key string) error {
 }
 
 func (c Collection) GetOne(key string, ret interface{}) (bool, error) {
-	req := client.QueryRequest{
+	req := QueryRequest{
 		Collection: c.name,
 		Key:        key,
 		Filter:     "",
@@ -167,7 +166,7 @@ func GetId(item any) (string, error) {
 	return id, nil
 }
 
-func NewDatabase(client *client.ServiceClient, sessionId string) DataStore {
+func NewDatabase(client *ServiceClient, sessionId string) DataStore {
 	return DataStore{
 		client:    client,
 		sessionId: sessionId,

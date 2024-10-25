@@ -2,7 +2,6 @@ package polycode
 
 import (
 	"context"
-	"github.com/CloudImpl-Inc/next-coder-sdk/client"
 	"os"
 	"time"
 )
@@ -51,7 +50,7 @@ func (s ServiceContext) FileStore() FileStore {
 type WorkflowContext struct {
 	ctx           context.Context
 	sessionId     string
-	serviceClient *client.ServiceClient
+	serviceClient *ServiceClient
 	config        AppConfig
 }
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/CloudImpl-Inc/next-coder-sdk/client"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v3"
 	"log"
@@ -12,12 +11,12 @@ import (
 	"os"
 )
 
-var serviceClient *client.ServiceClient = nil
+var serviceClient *ServiceClient = nil
 var appConfig AppConfig = nil
 var httpHandler http.Handler = nil
 
 func init() {
-	serviceClient = client.NewServiceClient("http://127.0.0.1:9999")
+	serviceClient = NewServiceClient("http://127.0.0.1:9999")
 	appConfig = loadAppConfig()
 }
 
@@ -102,7 +101,7 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 		if r := recover(); r != nil {
 			// Check if it's the specific error
 			if err, ok := r.(error); ok {
-				if err == client.ErrTaskInProgress {
+				if err == ErrTaskInProgress {
 					fmt.Printf("task in progress\n")
 					evt = &TaskCompleteEvent{TaskInProgress: true}
 				} else {
@@ -111,7 +110,7 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 				}
 			} else {
 				fmt.Printf("error %s\n", err.Error())
-				evt = errorToTaskComplete(client.ErrUnknownError)
+				evt = errorToTaskComplete(ErrUnknownError)
 			}
 		}
 	}()
@@ -169,17 +168,17 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 	case *http.Request:
 		{
 			if httpHandler == nil {
-				return errorToTaskComplete(client.ErrBadRequest)
+				return errorToTaskComplete(ErrBadRequest)
 			}
 
 			sessionId := it.Header.Get("x-polycode-task-session-id")
 			if sessionId == "" {
-				return errorToTaskComplete(client.ErrBadRequest)
+				return errorToTaskComplete(ErrBadRequest)
 			}
 
 			path := it.Header.Get("x-polycode-task-api-path")
 			if path == "" {
-				return errorToTaskComplete(client.ErrBadRequest)
+				return errorToTaskComplete(ErrBadRequest)
 			}
 
 			workflowCtx := WorkflowContext{
@@ -196,11 +195,11 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 		}
 	}
 
-	return errorToTaskComplete(client.ErrBadRequest)
+	return errorToTaskComplete(ErrBadRequest)
 }
 
 func errorToTaskComplete(err error) *TaskCompleteEvent {
-	ret := client.ErrTaskExecError.Wrap(err)
+	ret := ErrTaskExecError.Wrap(err)
 	println(fmt.Sprintf("task completed with error, %v", ret))
 	output := TaskOutput{IsAsync: false, IsNull: false, Error: &ret}
 	return outputToTaskComplete(output)

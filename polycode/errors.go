@@ -4,6 +4,12 @@ import (
 	"fmt"
 )
 
+var ErrBadRequest = DefineError("polycode.client", 2, "bad request")
+var ErrTaskExecError = DefineError("polycode.client", 3, "task execution error")
+var ErrUnknownError = DefineError("polycode.client", 4, "unknown error")
+var ErrPanic = DefineError("polycode.client", 5, "task in progress")
+var ErrTaskInProgress = &ErrPanic
+
 type Error struct {
 	Module   string
 	ErrorNo  int

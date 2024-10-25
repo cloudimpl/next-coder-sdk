@@ -1,10 +1,9 @@
-package client
+package polycode
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/CloudImpl-Inc/next-coder-sdk/polycode"
 	"net/http"
 	"time"
 )
@@ -24,10 +23,10 @@ type StartAppRequest struct {
 }
 
 type ExecRequest struct {
-	ServiceId  string               `json:"serviceId"`
-	EntryPoint string               `json:"entryPoint"`
-	Options    polycode.TaskOptions `json:"options"`
-	Input      polycode.TaskInput   `json:"input"`
+	ServiceId  string      `json:"serviceId"`
+	EntryPoint string      `json:"entryPoint"`
+	Options    TaskOptions `json:"options"`
+	Input      TaskInput   `json:"input"`
 }
 
 // PutRequest represents the JSON structure for put operations
@@ -85,11 +84,11 @@ func (sc *ServiceClient) StartApp(req StartAppRequest) error {
 }
 
 // ExecService executes a service with the given request
-func (sc *ServiceClient) ExecService(sessionId string, req ExecRequest) (polycode.TaskOutput, error) {
-	var res polycode.TaskOutput
+func (sc *ServiceClient) ExecService(sessionId string, req ExecRequest) (TaskOutput, error) {
+	var res TaskOutput
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/service/exec", req, &res)
 	if err != nil {
-		return polycode.TaskOutput{}, err
+		return TaskOutput{}, err
 	}
 
 	if res.IsAsync {
