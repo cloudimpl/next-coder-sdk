@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 var serviceClient *ServiceClient = nil
@@ -57,6 +58,33 @@ func loadAppConfig() AppConfig {
 	return yamlData.(map[string]interface{})
 }
 
+func startApiServer(port int) {
+	// Create a Gin router
+	r := gin.Default()
+
+	r.POST("/v1/invoke/api", invokeApiHandler)
+	r.POST("/v1/invoke/service", invokeServiceHandler)
+
+	// Start the Gin server
+	err := r.Run(fmt.Sprintf(":%d", port))
+	if err != nil {
+		panic(err)
+	}
+}
+
+func sendStartApp(port int) {
+	req := StartAppRequest{
+		ClientPort: port,
+	}
+
+	time.Sleep(500 * time.Millisecond)
+	println("starting app")
+	err := serviceClient.StartApp(req)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func Start(params ...any) {
 	if len(params) == 1 {
 		g, ok := params[1].(*gin.Engine)
@@ -65,33 +93,10 @@ func Start(params ...any) {
 		}
 	}
 
-	// Create a Gin router
-	r := gin.Default()
+	go startApiServer(9998)
+	go sendStartApp(9998)
 
-	r.POST("/v1/invoke/api", invokeApiHandler)
-	r.POST("/v1/invoke/service", invokeServiceHandler)
-
-	c := make(chan bool)
-	go func(c chan bool) {
-		// Start the Gin server
-		err := r.Run(fmt.Sprintf(":9998"))
-		if err != nil {
-			panic(err)
-		}
-		c <- true
-	}(c)
-
-	req := StartAppRequest{
-		ClientPort: 9998,
-	}
-
-	println("starting app")
-	err := serviceClient.StartApp(req)
-	if err != nil {
-		panic(err)
-	}
-
-	<-c
+	select {}
 }
 
 func invokeApiHandler(c *gin.Context) {
