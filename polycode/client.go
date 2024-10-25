@@ -138,6 +138,8 @@ func (sc *ServiceClient) PutFile(sessionId string, req PutFileRequest) error {
 }
 
 func executeApiWithoutResponse(httpClient *http.Client, baseUrl string, sessionId string, path string, req any) error {
+	println(fmt.Sprintf("client: exec api without response from %s with session id %s", path, sessionId))
+
 	reqBody, err := json.Marshal(req)
 	if err != nil {
 		return err
@@ -164,6 +166,8 @@ func executeApiWithoutResponse(httpClient *http.Client, baseUrl string, sessionI
 }
 
 func executeApiWithResponse[T any](httpClient *http.Client, baseUrl string, sessionId string, path string, req any, res *T) error {
+	println(fmt.Sprintf("client: exec api with response from %s with session id %s", path, sessionId))
+
 	reqBody, err := json.Marshal(req)
 	if err != nil {
 		return err

@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"time"
 )
 
@@ -120,6 +121,8 @@ func invokeServiceHandler(c *gin.Context) {
 }
 
 func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
+	println(fmt.Sprintf("client: run task with event %v", reflect.TypeOf(event)))
+
 	defer func() {
 		// Recover from panic and check for a specific error
 		if r := recover(); r != nil {
@@ -142,6 +145,8 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 	switch it := event.(type) {
 	case *TaskStartEvent:
 		{
+			println("client: handle task start event")
+
 			service, err := GetService()
 			if err != nil {
 				return errorToTaskComplete(err)
@@ -166,6 +171,8 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 					serviceClient: serviceClient,
 					config:        appConfig,
 				}
+
+				println(fmt.Sprintf("client: exec workflow %s with session id %s", it.EntryPoint, it.SessionId))
 				ret, err = service.ExecuteWorkflow(workflowCtx, it.EntryPoint, inputObj)
 			} else {
 				srvCtx := ServiceContext{
@@ -174,6 +181,8 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 					dataStore: NewDatabase(serviceClient, it.SessionId),
 					config:    appConfig,
 				}
+
+				println(fmt.Sprintf("client: exec service %s with session id %s", it.EntryPoint, it.SessionId))
 				ret, err = service.ExecuteService(srvCtx, it.EntryPoint, inputObj)
 			}
 
@@ -187,10 +196,14 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 			} else {
 				output.Output = ret
 			}
+
+			println("client: task completed")
 			return outputToTaskComplete(output)
 		}
 	case *http.Request:
 		{
+			println("client: handle http request")
+
 			if httpHandler == nil {
 				return errorToTaskComplete(ErrBadRequest)
 			}
