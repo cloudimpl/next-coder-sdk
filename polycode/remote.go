@@ -10,14 +10,6 @@ type Future interface {
 	GetAny() (any, error)
 	IsNull() bool
 }
-type RemoteServiceFactory struct {
-	Create func(name string) (RemoteService, error)
-}
-
-type RemoteService interface {
-	RequestReply(options TaskOptions, method string, input any) Future
-	Send(options TaskOptions, method string, input any) error
-}
 
 func ThrowError(err error) Future {
 	return ErrorFuture{error: err}
@@ -80,7 +72,6 @@ func (f FutureImpl) Get(ret any) error {
 }
 
 func FutureFrom(data any) Future {
-
 	return FutureImpl{data: data}
 }
 

@@ -4,9 +4,6 @@ import (
 	"fmt"
 )
 
-var ErrHttpResponse = DefineError("polycode.http", 1000, "code: [%d], error: [%s]")
-var ErrInvalidContext = DefineError("polycode.context", 1001, "invalid context")
-
 type Error struct {
 	Module   string
 	ErrorNo  int

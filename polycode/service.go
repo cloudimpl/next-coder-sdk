@@ -1,25 +1,11 @@
 package polycode
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/CloudImpl-Inc/next-coder-sdk/client"
 )
-
-var ErrServiceNotFound = DefineError("polycode.service", 1, "service not found,serviceId: [%s]")
-
-type NoArg string
-type ServiceRegistry struct {
-	services map[string]Service
-}
-
-var serviceRegistry = ServiceRegistry{services: make(map[string]Service)}
-
-func GetRemoteService(serviceId string) (Service, error) {
-	service, ok := serviceRegistry.services[serviceId]
-	if !ok {
-		return nil, ErrServiceNotFound.With(serviceId)
-	}
-	return service, nil
-}
 
 var mainService Service = nil
 
@@ -44,4 +30,45 @@ type Service interface {
 	ExecuteService(ctx ServiceContext, method string, input any) (any, error)
 	ExecuteWorkflow(ctx WorkflowContext, method string, input any) (any, error)
 	IsWorkflow(method string) bool
+}
+
+type RemoteService struct {
+	ctx           context.Context
+	sessionId     string
+	serviceId     string
+	serviceClient *client.ServiceClient
+}
+
+func (r RemoteService) RequestReply(options TaskOptions, method string, input any) Future {
+	b, err := json.Marshal(input)
+	if err != nil {
+		return ThrowError(err)
+	}
+
+	taskInput := TaskInput{
+		NoArg:     false,
+		TargetReq: string(b),
+	}
+	req := client.ExecRequest{
+		ServiceId:  r.serviceId,
+		EntryPoint: method,
+		Options:    options,
+		Input:      taskInput,
+	}
+
+	output, err := r.serviceClient.ExecService(r.sessionId, req)
+	if err != nil {
+		println(fmt.Sprintf("execTask error %s", err.Error()))
+		return ThrowError(err)
+	}
+	println(fmt.Sprintf("exec task output %v", output))
+	if output.Error != nil {
+		return ThrowError(output.Error)
+	}
+	return FutureFrom(output.Output)
+}
+
+func (r RemoteService) Send(options TaskOptions, method string, input any) error {
+	//TODO implement me
+	panic("implement me")
 }

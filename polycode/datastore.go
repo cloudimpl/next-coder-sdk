@@ -1,16 +1,29 @@
-package db
+package polycode
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/CloudImpl-Inc/next-coder-sdk/polycode"
+	client "github.com/CloudImpl-Inc/next-coder-sdk/client"
 	"reflect"
 )
 
+type DataStore struct {
+	client    *client.ServiceClient
+	sessionId string
+}
+
+func (d DataStore) Collection(name string) Collection {
+	return Collection{
+		client:    d.client,
+		sessionId: d.sessionId,
+		name:      name,
+	}
+}
+
 type Collection struct {
-	db   *Database
-	dbTx *Tx
-	name string
+	client    *client.ServiceClient
+	sessionId string
+	name      string
 }
 
 func (c Collection) InsertOne(item interface{}) error {
@@ -30,12 +43,18 @@ func (c Collection) InsertOne(item interface{}) error {
 		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
-	c.dbTx.Operations = append(c.dbTx.Operations, Operation{
+	req := client.PutRequest{
 		Action:     "insert",
 		Collection: c.name,
 		Key:        id,
 		Item:       mapItems,
-	})
+	}
+
+	err = c.client.PutItem(c.sessionId, req)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -56,45 +75,67 @@ func (c Collection) UpdateOne(item interface{}) error {
 		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
-	c.dbTx.Operations = append(c.dbTx.Operations, Operation{
+	req := client.PutRequest{
 		Action:     "update",
 		Collection: c.name,
 		Key:        id,
 		Item:       mapItems,
-	})
+	}
+
+	err = c.client.PutItem(c.sessionId, req)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (c Collection) DeleteOne(key string) error {
-	c.dbTx.Operations = append(c.dbTx.Operations, Operation{
+	req := client.PutRequest{
 		Action:     "delete",
 		Collection: c.name,
 		Key:        key,
-	})
+	}
+
+	err := c.client.PutItem(c.sessionId, req)
+	if err != nil {
+		return err
+	}
+
 	return nil
-	//return c.db.client.DeleteItem(c.db.sessionId, c.name, key)
 }
 
 func (c Collection) GetOne(key string, ret interface{}) (bool, error) {
-	r, err := c.db.client.GetItem(c.db.sessionId, c.name, key, "", nil)
+	req := client.QueryRequest{
+		Collection: c.name,
+		Key:        key,
+		Filter:     "",
+		Args:       nil,
+	}
+
+	r, err := c.client.GetItem(c.sessionId, req)
 	if err != nil {
 		return false, err
 	}
+
 	if r == nil {
 		return false, nil
 	}
+
 	b, err := json.Marshal(r)
 	if err != nil {
 		return false, fmt.Errorf("failed to marshal JSON: %w", err)
 	}
+
 	err = json.Unmarshal(b, ret)
 	if err != nil {
 		return false, fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
+
 	return true, nil
 }
 
-func (c Collection) Query() polycode.Query {
+func (c Collection) Query() Query {
 	return Query{
 		collection: &c,
 	}
@@ -124,4 +165,11 @@ func GetId(item any) (string, error) {
 		return "", fmt.Errorf("id not found")
 	}
 	return id, nil
+}
+
+func NewDatabase(client *client.ServiceClient, sessionId string) DataStore {
+	return DataStore{
+		client:    client,
+		sessionId: sessionId,
+	}
 }
