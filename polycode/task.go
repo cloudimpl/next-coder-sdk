@@ -57,7 +57,7 @@ func loadAppConfig() AppConfig {
 	return yamlData.(map[string]interface{})
 }
 
-func Start(params []any) {
+func Start(params ...any) {
 	if len(params) == 1 {
 		g, ok := params[1].(*gin.Engine)
 		if ok {
