@@ -103,7 +103,7 @@ func Start(params ...any) {
 func invokeApiHandler(c *gin.Context) {
 	println("client: api request received")
 	input := c.Request
-	output := runTask(nil, input)
+	output := runTask(c, input)
 	c.JSON(http.StatusOK, output)
 }
 
@@ -115,7 +115,7 @@ func invokeServiceHandler(c *gin.Context) {
 		return
 	}
 
-	output := runTask(nil, input)
+	output := runTask(c, input)
 	c.JSON(http.StatusOK, output)
 }
 
@@ -214,6 +214,8 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 			wkfCtx := context.WithValue(it.Context(), "polycode.context", workflowCtx)
 			it = it.WithContext(wkfCtx)
 			it.URL.Path = path
+
+			println(fmt.Sprintf("client: invoke handler %s with session id %s", path, sessionId))
 			resp := invokeHandler(httpHandler, it)
 			return &TaskCompleteEvent{Output: TaskOutput{IsAsync: false, IsNull: false, Output: resp, Error: nil}}
 		}
