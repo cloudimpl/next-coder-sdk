@@ -71,11 +71,27 @@ func Start(params ...any) {
 	r.POST("/v1/invoke/api", invokeApiHandler)
 	r.POST("/v1/invoke/service", invokeServiceHandler)
 
-	// Start the Gin server
-	err := r.Run(fmt.Sprintf(":9998"))
+	c := make(chan bool)
+	go func(c chan bool) {
+		// Start the Gin server
+		err := r.Run(fmt.Sprintf(":9998"))
+		if err != nil {
+			panic(err)
+		}
+		c <- true
+	}(c)
+
+	req := StartAppRequest{
+		ClientPort: 9998,
+	}
+
+	println("starting app")
+	err := serviceClient.StartApp(req)
 	if err != nil {
 		panic(err)
 	}
+
+	<-c
 }
 
 func invokeApiHandler(c *gin.Context) {
