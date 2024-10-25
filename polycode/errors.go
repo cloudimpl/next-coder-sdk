@@ -9,6 +9,7 @@ var ErrTaskExecError = DefineError("polycode.client", 3, "task execution error")
 var ErrUnknownError = DefineError("polycode.client", 4, "unknown error")
 var ErrPanic = DefineError("polycode.client", 5, "task in progress")
 var ErrTaskInProgress = &ErrPanic
+var ErrContextNotFound = DefineError("polycode.client", 6, "context not found")
 
 type Error struct {
 	Module   string
