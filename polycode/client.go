@@ -80,7 +80,7 @@ func NewServiceClient(baseURL string) *ServiceClient {
 
 // StartApp starts the app
 func (sc *ServiceClient) StartApp(req StartAppRequest) error {
-	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, "", "v1/context/app/start", req)
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, "", "v1/system/app/start", req)
 }
 
 // ExecService executes a service with the given request
@@ -157,7 +157,7 @@ func executeApiWithoutResponse(httpClient *http.Client, baseUrl string, sessionI
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to put file, status: %v", resp.Status)
+		return fmt.Errorf("http error, status: %v", resp.Status)
 	}
 
 	return nil
@@ -183,7 +183,7 @@ func executeApiWithResponse[T any](httpClient *http.Client, baseUrl string, sess
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to put file, status: %v", resp.Status)
+		return fmt.Errorf("http error, status: %v", resp.Status)
 	}
 
 	if res != nil {
