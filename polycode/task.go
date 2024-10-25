@@ -78,11 +78,12 @@ func sendStartApp(port int) {
 	}
 
 	time.Sleep(500 * time.Millisecond)
-	println("starting app")
+	println("client: starting app")
 	err := serviceClient.StartApp(req)
 	if err != nil {
 		panic(err)
 	}
+	println("client: app started")
 }
 
 func Start(params ...any) {
