@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"reflect"
-	"time"
 )
 
 var serviceClient *ServiceClient = nil
@@ -63,6 +62,7 @@ func startApiServer(port int) {
 	// Create a Gin router
 	r := gin.Default()
 
+	r.GET("/v1/health", invokeHealthCheck)
 	r.POST("/v1/invoke/api", invokeApiHandler)
 	r.POST("/v1/invoke/service", invokeServiceHandler)
 
@@ -93,13 +93,14 @@ func Start(params ...any) {
 	}
 
 	go startApiServer(9998)
-	time.Sleep(500 * time.Millisecond)
-	println("client: api server started")
-
 	sendStartApp(9998)
 	println("client: app started")
 
 	select {}
+}
+
+func invokeHealthCheck(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
 func invokeApiHandler(c *gin.Context) {
@@ -233,6 +234,7 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 
 			println(fmt.Sprintf("client: invoke handler %s with session id %s", path, sessionId))
 			resp := invokeHandler(httpHandler, it)
+			println("client: task completed")
 			return &TaskCompleteEvent{Output: TaskOutput{IsAsync: false, IsNull: false, Output: resp, Error: nil}}
 		}
 	}

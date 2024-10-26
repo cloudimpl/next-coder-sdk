@@ -88,7 +88,7 @@ func (w *ResponseWriter) End() Response {
 	}
 
 	// notify end
-	w.closeNotifyCh <- true
+	//w.closeNotifyCh <- true
 
 	return w.out
 }
