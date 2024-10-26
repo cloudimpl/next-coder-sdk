@@ -78,13 +78,10 @@ func sendStartApp(port int) {
 		ClientPort: port,
 	}
 
-	time.Sleep(500 * time.Millisecond)
-	println("client: starting app")
 	err := serviceClient.StartApp(req)
 	if err != nil {
 		panic(err)
 	}
-	println("client: app started")
 }
 
 func Start(params ...any) {
@@ -96,7 +93,11 @@ func Start(params ...any) {
 	}
 
 	go startApiServer(9998)
-	go sendStartApp(9998)
+	time.Sleep(500 * time.Millisecond)
+	println("client: api server started")
+
+	sendStartApp(9998)
+	println("client: app started")
 
 	select {}
 }
@@ -106,6 +107,7 @@ func invokeApiHandler(c *gin.Context) {
 	input := c.Request
 	output := runTask(c, input)
 	c.JSON(http.StatusOK, output)
+	println("client: api request completed")
 }
 
 func invokeServiceHandler(c *gin.Context) {
@@ -118,6 +120,7 @@ func invokeServiceHandler(c *gin.Context) {
 
 	output := runTask(c, &input)
 	c.JSON(http.StatusOK, output)
+	println("client: service request completed")
 }
 
 func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
