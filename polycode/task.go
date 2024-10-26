@@ -116,7 +116,7 @@ func invokeServiceHandler(c *gin.Context) {
 		return
 	}
 
-	output := runTask(c, input)
+	output := runTask(c, &input)
 	c.JSON(http.StatusOK, output)
 }
 
