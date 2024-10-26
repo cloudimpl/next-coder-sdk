@@ -178,7 +178,7 @@ func executeApiWithResponse[T any](httpClient *http.Client, baseUrl string, sess
 		return err
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("x-polycode-session-id", sessionId)
+	httpReq.Header.Set("x-polycode-task-session-id", sessionId)
 
 	resp, err := httpClient.Do(httpReq)
 	if err != nil {
