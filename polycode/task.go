@@ -222,6 +222,11 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 				return errorToTaskComplete(ErrBadRequest)
 			}
 
+			method := it.Header.Get("x-polycode-task-api-method")
+			if method == "" {
+				return errorToTaskComplete(ErrBadRequest)
+			}
+
 			workflowCtx := WorkflowContext{
 				ctx:           ctx,
 				sessionId:     sessionId,
@@ -231,6 +236,7 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 			wkfCtx := context.WithValue(it.Context(), "polycode.context", workflowCtx)
 			it = it.WithContext(wkfCtx)
 			it.URL.Path = path
+			it.Method = method
 
 			println(fmt.Sprintf("client: invoke handler %s with session id %s", path, sessionId))
 			resp := invokeHandler(httpHandler, it)
