@@ -3,6 +3,7 @@ package polycode
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"mime"
 	"net/http"
 	"strings"
@@ -133,11 +134,13 @@ type SerializableRequest struct {
 
 // Manually invoke an HTTP handler
 func invokeHandler(handler http.Handler, req *http.Request) Response {
+	fmt.Printf("client: invokeHandler request: %v\n", req)
 	// Create a custom ResponseWriter
 	customWriter := &ResponseWriter{}
 	// Call the handler's ServeHTTP method
 	handler.ServeHTTP(customWriter, req)
 	res := customWriter.End()
+	fmt.Printf("client: invokeHandler response: %v\n", res)
 	// Return the status code and the response body
 	return res
 }
