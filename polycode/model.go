@@ -41,3 +41,18 @@ type TaskOutput struct {
 	Output  any    `json:"output"`
 	Error   *Error `json:"error"`
 }
+
+type ApiRequest struct {
+	Id           string            `json:"id"`
+	Method       string            `json:"method"`
+	Path         string            `json:"path"`
+	PathTemplate string            `json:"pathTemplate"`
+	Query        map[string]string `json:"query"`
+	Header       map[string]string `json:"header"`
+	Body         string            `json:"body"`
+}
+
+type ApiStartEvent struct {
+	SessionId string     `json:"sessionId"`
+	Request   ApiRequest `json:"request"`
+}

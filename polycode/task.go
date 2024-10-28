@@ -1,15 +1,18 @@
 package polycode
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v3"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"reflect"
+	"strings"
 )
 
 var serviceClient *ServiceClient = nil
@@ -99,14 +102,52 @@ func Start(params ...any) {
 	select {}
 }
 
+func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request, error) {
+	// Build the URL
+	url := apiReq.Path
+	if len(apiReq.Query) > 0 {
+		queryParams := "?"
+		for key, value := range apiReq.Query {
+			queryParams += key + "=" + value + "&"
+		}
+		queryParams = strings.TrimSuffix(queryParams, "&")
+		url += queryParams
+	}
+
+	// Create a new HTTP request
+	var body io.Reader
+	if apiReq.Body != "" {
+		body = bytes.NewReader([]byte(apiReq.Body))
+	} else {
+		body = nil
+	}
+
+	req, err := http.NewRequest(apiReq.Method, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add headers
+	for key, value := range apiReq.Header {
+		req.Header.Set(key, value)
+	}
+
+	return req, nil
+}
+
 func invokeHealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
 func invokeApiHandler(c *gin.Context) {
 	println("client: api request received")
-	input := c.Request
-	output := runTask(c, input)
+	var input ApiStartEvent
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	output := runTask(c, &input)
 	println("client: api request completed")
 	c.JSON(http.StatusOK, output)
 }
@@ -204,42 +245,30 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 			println("client: task completed")
 			return outputToTaskComplete(output)
 		}
-	case *http.Request:
+	case *ApiStartEvent:
 		{
 			println("client: handle http request")
 
 			if httpHandler == nil {
-				return errorToTaskComplete(ErrBadRequest)
-			}
-
-			sessionId := it.Header.Get("x-polycode-task-session-id")
-			if sessionId == "" {
-				return errorToTaskComplete(ErrBadRequest)
-			}
-
-			path := it.Header.Get("x-polycode-task-api-path")
-			if path == "" {
-				return errorToTaskComplete(ErrBadRequest)
-			}
-
-			method := it.Header.Get("x-polycode-task-api-method")
-			if method == "" {
+				println("client: http handler not found")
 				return errorToTaskComplete(ErrBadRequest)
 			}
 
 			workflowCtx := WorkflowContext{
 				ctx:           ctx,
-				sessionId:     sessionId,
+				sessionId:     it.SessionId,
 				serviceClient: serviceClient,
 				config:        appConfig,
 			}
-			wkfCtx := context.WithValue(it.Context(), "polycode.context", workflowCtx)
-			it = it.WithContext(wkfCtx)
-			it.URL.Path = path
-			it.Method = method
+			wkfCtx := context.WithValue(ctx, "polycode.context", workflowCtx)
 
-			println(fmt.Sprintf("client: invoke handler %s with session id %s", path, sessionId))
-			resp := invokeHandler(httpHandler, it)
+			req, err := ConvertToHttpRequest(wkfCtx, it.Request)
+			if err != nil {
+				println("client: failed to convert api request")
+				return errorToTaskComplete(err)
+			}
+
+			resp := invokeHandler(httpHandler, req)
 			println("client: task completed")
 			return &TaskCompleteEvent{Output: TaskOutput{IsAsync: false, IsNull: false, Output: resp, Error: nil}}
 		}
