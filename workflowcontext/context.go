@@ -2,7 +2,7 @@ package workflowcontext
 
 import (
 	"context"
-	"github.com/CloudImpl-Inc/next-coder-sdk/polycode"
+	"github.com/cloudimpl/next-coder-sdk/polycode"
 )
 
 func FromContext(ctx context.Context) (polycode.WorkflowContext, error) {

@@ -1,4 +1,4 @@
-module github.com/CloudImpl-Inc/next-coder-sdk
+module github.com/cloudimpl/next-coder-sdk
 
 require (
 	github.com/gin-gonic/gin v1.10.0
