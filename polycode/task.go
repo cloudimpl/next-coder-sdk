@@ -96,6 +96,8 @@ func sendStartApp(port int, routes []RouteData) {
 func LoadRoutes(engine *gin.Engine) []RouteData {
 	var routes []RouteData
 	for _, route := range engine.Routes() {
+		fmt.Printf("client: route found %s %s\n", route.Method, route.Path)
+
 		routes = append(routes, RouteData{
 			Method: route.Method,
 			Path:   route.Path,
@@ -110,7 +112,7 @@ func Start(params ...any) {
 		g, ok := params[0].(*gin.Engine)
 		if ok {
 			httpHandler = g.Handler()
-			LoadRoutes(g)
+			routes = LoadRoutes(g)
 		}
 	}
 
