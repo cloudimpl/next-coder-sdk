@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v3"
@@ -24,6 +25,11 @@ func init() {
 	appConfig = loadAppConfig()
 }
 
+type RouteData struct {
+	Method string `json:"method"`
+	Path   string `json:"path"`
+}
+
 type TaskStartEvent struct {
 	Id         string    `json:"id"`
 	SessionId  string    `json:"sessionId"`
@@ -32,8 +38,7 @@ type TaskStartEvent struct {
 }
 
 type TaskCompleteEvent struct {
-	Output         TaskOutput
-	TaskInProgress bool
+	Output TaskOutput
 }
 
 func loadAppConfig() AppConfig {
@@ -76,9 +81,10 @@ func startApiServer(port int) {
 	}
 }
 
-func sendStartApp(port int) {
+func sendStartApp(port int, routes []RouteData) {
 	req := StartAppRequest{
 		ClientPort: port,
+		Routes:     routes,
 	}
 
 	err := serviceClient.StartApp(req)
@@ -87,16 +93,29 @@ func sendStartApp(port int) {
 	}
 }
 
+func LoadRoutes(engine *gin.Engine) []RouteData {
+	var routes []RouteData
+	for _, route := range engine.Routes() {
+		routes = append(routes, RouteData{
+			Method: route.Method,
+			Path:   route.Path,
+		})
+	}
+	return routes
+}
+
 func Start(params ...any) {
+	var routes []RouteData
 	if len(params) == 1 {
 		g, ok := params[0].(*gin.Engine)
 		if ok {
 			httpHandler = g.Handler()
+			LoadRoutes(g)
 		}
 	}
 
 	go startApiServer(9998)
-	sendStartApp(9998)
+	sendStartApp(9998, routes)
 	println("client: app started")
 
 	select {}
@@ -173,9 +192,9 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 		if r := recover(); r != nil {
 			// Check if it's the specific error
 			if err, ok := r.(error); ok {
-				if err == ErrTaskInProgress {
+				if errors.Is(err, ErrTaskInProgress) {
 					fmt.Printf("task in progress\n")
-					evt = &TaskCompleteEvent{TaskInProgress: true}
+					evt = &TaskCompleteEvent{}
 				} else {
 					fmt.Printf("error %s\n", err.Error())
 					evt = errorToTaskComplete(err)

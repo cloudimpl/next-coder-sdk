@@ -19,7 +19,8 @@ const (
 type TaskStatus int8
 
 type StartAppRequest struct {
-	ClientPort int `json:"clientPort"`
+	ClientPort int         `json:"clientPort"`
+	Routes     []RouteData `json:"routes"`
 }
 
 type ExecRequest struct {
