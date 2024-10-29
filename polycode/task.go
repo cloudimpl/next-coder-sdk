@@ -151,6 +151,7 @@ func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request
 		req.Header.Set(key, value)
 	}
 
+	req.WithContext(ctx)
 	return req, nil
 }
 
