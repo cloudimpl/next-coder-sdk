@@ -141,7 +141,8 @@ func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request
 		body = nil
 	}
 
-	req, err := http.NewRequest(apiReq.Method, url, body)
+	println("client: create http request with workflow context")
+	req, err := http.NewRequestWithContext(ctx, apiReq.Method, url, body)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +152,6 @@ func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request
 		req.Header.Set(key, value)
 	}
 
-	req.WithContext(ctx)
 	return req, nil
 }
 
