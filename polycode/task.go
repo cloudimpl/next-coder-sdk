@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"runtime/debug"
 	"strings"
 )
 
@@ -203,10 +204,14 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 					evt = &TaskCompleteEvent{}
 				} else {
 					fmt.Printf("error %s\n", err.Error())
+					stackTrace := string(debug.Stack())
+					println(stackTrace)
 					evt = errorToTaskComplete(err)
 				}
 			} else {
 				fmt.Printf("error %s\n", err.Error())
+				stackTrace := string(debug.Stack())
+				println(stackTrace)
 				evt = errorToTaskComplete(ErrUnknownError)
 			}
 		}
