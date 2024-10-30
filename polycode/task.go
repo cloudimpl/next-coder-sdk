@@ -217,7 +217,7 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 		{
 			println("client: handle task start event")
 
-			service, err := GetService()
+			service, err := GetService(it.ServiceName)
 			if err != nil {
 				return errorToTaskComplete(err)
 			}

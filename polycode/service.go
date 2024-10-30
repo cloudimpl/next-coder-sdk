@@ -6,21 +6,19 @@ import (
 	"fmt"
 )
 
-var mainService Service = nil
+var serviceMap = make(map[string]Service)
 
 func RegisterService(service Service) {
 	fmt.Println("register service ", service.GetName())
-	if mainService != nil {
-		panic("main service already set")
-	}
-	mainService = service
+	serviceMap[service.GetName()] = service
 }
 
-func GetService() (Service, error) {
-	if mainService == nil {
+func GetService(serviceName string) (Service, error) {
+	service := serviceMap[serviceName]
+	if service == nil {
 		return nil, fmt.Errorf("service not set")
 	}
-	return mainService, nil
+	return service, nil
 }
 
 type Service interface {
