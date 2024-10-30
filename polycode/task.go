@@ -306,7 +306,7 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 
 func errorToTaskComplete(err error) *TaskCompleteEvent {
 	ret := ErrTaskExecError.Wrap(err)
-	println(fmt.Sprintf("task completed with error, %v", ret))
+	println(fmt.Sprintf("client: task completed with error, %v", ret))
 	output := TaskOutput{IsAsync: false, IsNull: false, Error: &ret}
 	return outputToTaskComplete(output)
 }
