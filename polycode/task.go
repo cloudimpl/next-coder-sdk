@@ -31,10 +31,13 @@ type RouteData struct {
 }
 
 type TaskStartEvent struct {
-	Id         string    `json:"id"`
-	SessionId  string    `json:"sessionId"`
-	EntryPoint string    `json:"entryPoint"`
-	Input      TaskInput `json:"input"`
+	Id           string    `json:"id"`
+	SessionId    string    `json:"sessionId"`
+	TenantId     string    `json:"tenantId"`
+	ServiceName  string    `json:"serviceName"`
+	PartitionKey string    `json:"partitionKey"`
+	EntryPoint   string    `json:"entryPoint"`
+	Input        TaskInput `json:"input"`
 }
 
 type TaskCompleteEvent struct {
@@ -239,7 +242,8 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 					config:        appConfig,
 				}
 
-				println(fmt.Sprintf("client: exec workflow %s with session id %s", it.EntryPoint, it.SessionId))
+				println(fmt.Sprintf("client: service %s exec workflow %s with session id %s", it.ServiceName,
+					it.EntryPoint, it.SessionId))
 				ret, err = service.ExecuteWorkflow(workflowCtx, it.EntryPoint, inputObj)
 			} else {
 				srvCtx := ServiceContext{
@@ -249,7 +253,8 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 					config:    appConfig,
 				}
 
-				println(fmt.Sprintf("client: exec service %s with session id %s", it.EntryPoint, it.SessionId))
+				println(fmt.Sprintf("client: service %s exec handler %s with session id %s", it.ServiceName,
+					it.EntryPoint, it.SessionId))
 				ret, err = service.ExecuteService(srvCtx, it.EntryPoint, inputObj)
 			}
 
@@ -276,15 +281,15 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 				return errorToTaskComplete(ErrBadRequest)
 			}
 
-			workflowCtx := WorkflowContext{
+			apiCtx := ApiContext{
 				ctx:           ctx,
 				sessionId:     it.SessionId,
 				serviceClient: serviceClient,
 				config:        appConfig,
 			}
-			wkfCtx := context.WithValue(ctx, "polycode.context", workflowCtx)
+			newCtx := context.WithValue(ctx, "polycode.context", apiCtx)
 
-			req, err := ConvertToHttpRequest(wkfCtx, it.Request)
+			req, err := ConvertToHttpRequest(newCtx, it.Request)
 			if err != nil {
 				println("client: failed to convert api request")
 				return errorToTaskComplete(err)

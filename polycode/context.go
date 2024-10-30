@@ -2,7 +2,6 @@ package polycode
 
 import (
 	"context"
-	"os"
 	"time"
 )
 
@@ -78,6 +77,33 @@ func (wc WorkflowContext) Service(serviceId string) (RemoteService, error) {
 	return RemoteService{ctx: wc.ctx, sessionId: wc.sessionId, serviceId: serviceId, serviceClient: wc.serviceClient}, nil
 }
 
-func (wc WorkflowContext) LocalService() (RemoteService, error) {
-	return RemoteService{ctx: wc.ctx, sessionId: wc.sessionId, serviceId: os.Getenv("polycode_SERVICE_ID"), serviceClient: wc.serviceClient}, nil
+type ApiContext struct {
+	ctx           context.Context
+	sessionId     string
+	serviceClient *ServiceClient
+	config        AppConfig
+}
+
+func (wc ApiContext) AppConfig() AppConfig {
+	return wc.config
+}
+
+func (wc ApiContext) Deadline() (deadline time.Time, ok bool) {
+	return wc.ctx.Deadline()
+}
+
+func (wc ApiContext) Done() <-chan struct{} {
+	return wc.ctx.Done()
+}
+
+func (wc ApiContext) Err() error {
+	return wc.ctx.Err()
+}
+
+func (wc ApiContext) Value(key any) any {
+	return wc.ctx.Value(key)
+}
+
+func (wc ApiContext) Service(serviceId string) (RemoteService, error) {
+	return RemoteService{ctx: wc.ctx, sessionId: wc.sessionId, serviceId: serviceId, serviceClient: wc.serviceClient}, nil
 }
