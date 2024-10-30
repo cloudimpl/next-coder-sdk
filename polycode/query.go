@@ -91,18 +91,27 @@ func (q Query) One(ctx context.Context, ret interface{}) error {
 		Filter:     q.filter,
 		Args:       q.args,
 	}
-	r, err := q.collection.client.GetItem(q.collection.sessionId, req)
+
+	r, err := q.collection.client.QueryItems(q.collection.sessionId, req)
 	if err != nil {
 		return err
 	}
-	b, err := json.Marshal(r)
+
+	if len(r) == 0 {
+		return nil
+	}
+
+	e := r[0]
+	b, err := json.Marshal(e)
 	if err != nil {
 		return err
 	}
+
 	err = json.Unmarshal(b, ret)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
