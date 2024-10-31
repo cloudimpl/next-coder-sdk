@@ -17,32 +17,52 @@ import (
 	"strings"
 )
 
-var serviceClient *ServiceClient = nil
-var appConfig AppConfig = nil
-var httpHandler http.Handler = nil
+var serviceClient = NewServiceClient("http://127.0.0.1:9999")
+var appConfig = loadAppConfig()
+var serviceMap = make(map[string]Service)
+var httpHandler *gin.Engine = nil
 
-func init() {
-	serviceClient = NewServiceClient("http://127.0.0.1:9999")
-	appConfig = loadAppConfig()
+type Service interface {
+	GetName() string
+	GetInputType(method string) (any, error)
+	ExecuteService(ctx ServiceContext, method string, input any) (any, error)
+	ExecuteWorkflow(ctx WorkflowContext, method string, input any) (any, error)
+	IsWorkflow(method string) bool
 }
 
-type RouteData struct {
-	Method string `json:"method"`
-	Path   string `json:"path"`
+func RegisterService(service Service) {
+	fmt.Println("client: register service ", service.GetName())
+
+	if serviceMap[service.GetName()] != nil {
+		panic(fmt.Sprintf("client: service %s already registered", service.GetName()))
+	}
+
+	serviceMap[service.GetName()] = service
 }
 
-type TaskStartEvent struct {
-	Id           string    `json:"id"`
-	SessionId    string    `json:"sessionId"`
-	TenantId     string    `json:"tenantId"`
-	ServiceName  string    `json:"serviceName"`
-	PartitionKey string    `json:"partitionKey"`
-	EntryPoint   string    `json:"entryPoint"`
-	Input        TaskInput `json:"input"`
+func RegisterApi(engine *gin.Engine) {
+	fmt.Println("client: register api")
+
+	if httpHandler != nil {
+		panic("client: api already registered")
+	}
+
+	httpHandler = engine
 }
 
-type TaskCompleteEvent struct {
-	Output TaskOutput
+func StartApp() {
+	go startApiServer()
+	sendStartApp()
+	fmt.Printf("client: app %s started on port %d\n", GetClientEnv().AppName, GetClientEnv().AppPort)
+	select {}
+}
+
+func getService(serviceName string) (Service, error) {
+	service := serviceMap[serviceName]
+	if service == nil {
+		return nil, fmt.Errorf("client: service %s not registered", serviceName)
+	}
+	return service, nil
 }
 
 func loadAppConfig() AppConfig {
@@ -70,25 +90,20 @@ func loadAppConfig() AppConfig {
 	return yamlData.(map[string]interface{})
 }
 
-func startApiServer(port int) {
-	// Create a Gin router
-	r := gin.Default()
-
-	r.GET("/v1/health", invokeHealthCheck)
-	r.POST("/v1/invoke/api", invokeApiHandler)
-	r.POST("/v1/invoke/service", invokeServiceHandler)
-
-	// Start the Gin server
-	err := r.Run(fmt.Sprintf(":%d", port))
-	if err != nil {
-		panic(err)
+func sendStartApp() {
+	var services []ServiceData
+	for name := range serviceMap {
+		services = append(services, ServiceData{
+			Name: name,
+			// ToDo: Add task info
+		})
 	}
-}
 
-func sendStartApp(port int, routes []RouteData) {
 	req := StartAppRequest{
-		ClientPort: port,
-		Routes:     routes,
+		AppName:  GetClientEnv().AppName,
+		AppPort:  GetClientEnv().AppPort,
+		Services: services,
+		Routes:   loadRoutes(),
 	}
 
 	err := serviceClient.StartApp(req)
@@ -97,98 +112,19 @@ func sendStartApp(port int, routes []RouteData) {
 	}
 }
 
-func LoadRoutes(engine *gin.Engine) []RouteData {
-	var routes []RouteData
-	for _, route := range engine.Routes() {
-		fmt.Printf("client: route found %s %s\n", route.Method, route.Path)
+func loadRoutes() []RouteData {
+	var routes = make([]RouteData, 0)
+	if httpHandler != nil {
+		for _, route := range httpHandler.Routes() {
+			fmt.Printf("client: route found %s %s\n", route.Method, route.Path)
 
-		routes = append(routes, RouteData{
-			Method: route.Method,
-			Path:   route.Path,
-		})
+			routes = append(routes, RouteData{
+				Method: route.Method,
+				Path:   route.Path,
+			})
+		}
 	}
 	return routes
-}
-
-func Start(params ...any) {
-	var routes []RouteData
-	if len(params) == 1 {
-		g, ok := params[0].(*gin.Engine)
-		if ok {
-			httpHandler = g.Handler()
-			routes = LoadRoutes(g)
-		}
-	}
-
-	go startApiServer(9998)
-	sendStartApp(9998, routes)
-	println("client: app started")
-
-	select {}
-}
-
-func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request, error) {
-	// Build the URL
-	url := apiReq.Path
-	if len(apiReq.Query) > 0 {
-		queryParams := "?"
-		for key, value := range apiReq.Query {
-			queryParams += key + "=" + value + "&"
-		}
-		queryParams = strings.TrimSuffix(queryParams, "&")
-		url += queryParams
-	}
-
-	// Create a new HTTP request
-	var body io.Reader
-	if apiReq.Body != "" {
-		body = bytes.NewReader([]byte(apiReq.Body))
-	} else {
-		body = nil
-	}
-
-	println("client: create http request with workflow context")
-	req, err := http.NewRequestWithContext(ctx, apiReq.Method, url, body)
-	if err != nil {
-		return nil, err
-	}
-
-	// Add headers
-	for key, value := range apiReq.Header {
-		req.Header.Set(key, value)
-	}
-
-	return req, nil
-}
-
-func invokeHealthCheck(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
-}
-
-func invokeApiHandler(c *gin.Context) {
-	println("client: api request received")
-	var input ApiStartEvent
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-		return
-	}
-
-	output := runTask(c, &input)
-	println("client: api request completed")
-	c.JSON(http.StatusOK, output)
-}
-
-func invokeServiceHandler(c *gin.Context) {
-	println("client: service request received")
-	var input TaskStartEvent
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-		return
-	}
-
-	output := runTask(c, &input)
-	println("client: service request completed")
-	c.JSON(http.StatusOK, output)
 }
 
 func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
@@ -222,7 +158,7 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 		{
 			println("client: handle task start event")
 
-			service, err := GetService(it.ServiceName)
+			service, err := getService(it.ServiceName)
 			if err != nil {
 				return errorToTaskComplete(err)
 			}
@@ -280,9 +216,7 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 	case *ApiStartEvent:
 		{
 			println("client: handle http request")
-
 			if httpHandler == nil {
-				println("client: http handler not found")
 				return errorToTaskComplete(ErrBadRequest)
 			}
 
@@ -307,6 +241,40 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 	}
 
 	return errorToTaskComplete(ErrBadRequest)
+}
+
+func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request, error) {
+	// Build the URL
+	url := apiReq.Path
+	if len(apiReq.Query) > 0 {
+		queryParams := "?"
+		for key, value := range apiReq.Query {
+			queryParams += key + "=" + value + "&"
+		}
+		queryParams = strings.TrimSuffix(queryParams, "&")
+		url += queryParams
+	}
+
+	// Create a new HTTP request
+	var body io.Reader
+	if apiReq.Body != "" {
+		body = bytes.NewReader([]byte(apiReq.Body))
+	} else {
+		body = nil
+	}
+
+	println("client: create http request with workflow context")
+	req, err := http.NewRequestWithContext(ctx, apiReq.Method, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add headers
+	for key, value := range apiReq.Header {
+		req.Header.Set(key, value)
+	}
+
+	return req, nil
 }
 
 func errorToTaskComplete(err error) *TaskCompleteEvent {

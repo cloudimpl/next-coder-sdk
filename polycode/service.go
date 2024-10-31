@@ -6,34 +6,6 @@ import (
 	"fmt"
 )
 
-var mainService Service = nil
-
-func RegisterService(service Service) {
-	fmt.Println("register service ", service.GetName())
-
-	// ToDo: Support multiple service registration, Need to modify code generation and folder structure
-	if mainService != nil {
-		panic("main service already set")
-	}
-	mainService = service
-}
-
-func GetService(serviceName string) (Service, error) {
-	// ToDo: Support multiple service execution, Need to modify code generation and folder structure
-	if mainService == nil {
-		return nil, fmt.Errorf("service not set")
-	}
-	return mainService, nil
-}
-
-type Service interface {
-	GetName() string
-	GetInputType(method string) (any, error)
-	ExecuteService(ctx ServiceContext, method string, input any) (any, error)
-	ExecuteWorkflow(ctx WorkflowContext, method string, input any) (any, error)
-	IsWorkflow(method string) bool
-}
-
 type RemoteService struct {
 	ctx           context.Context
 	sessionId     string

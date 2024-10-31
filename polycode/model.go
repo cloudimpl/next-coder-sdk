@@ -35,11 +35,14 @@ type TaskInput struct {
 	TargetReq string `json:"targetReq"`
 }
 
-type TaskOutput struct {
-	IsAsync bool   `json:"isAsync"`
-	IsNull  bool   `json:"isNull"`
-	Output  any    `json:"output"`
-	Error   *Error `json:"error"`
+type TaskStartEvent struct {
+	Id           string    `json:"id"`
+	SessionId    string    `json:"sessionId"`
+	TenantId     string    `json:"tenantId"`
+	ServiceName  string    `json:"serviceName"`
+	PartitionKey string    `json:"partitionKey"`
+	EntryPoint   string    `json:"entryPoint"`
+	Input        TaskInput `json:"input"`
 }
 
 type ApiRequest struct {
@@ -52,6 +55,39 @@ type ApiRequest struct {
 }
 
 type ApiStartEvent struct {
-	SessionId string     `json:"sessionId"`
-	Request   ApiRequest `json:"request"`
+	SessionId  string     `json:"sessionId"`
+	Controller string     `json:"controller"`
+	Request    ApiRequest `json:"request"`
+}
+
+type TaskOutput struct {
+	IsAsync bool   `json:"isAsync"`
+	IsNull  bool   `json:"isNull"`
+	Output  any    `json:"output"`
+	Error   *Error `json:"error"`
+}
+
+type TaskCompleteEvent struct {
+	Output TaskOutput
+}
+
+type RouteData struct {
+	Method string `json:"method"`
+	Path   string `json:"path"`
+}
+
+type ServiceData struct {
+	Name  string     `json:"name"`
+	Tasks []TaskData `json:"tasks"`
+}
+
+type TaskData struct {
+	Name       string `json:"name"`
+	IsWorkflow bool   `json:"isWorkflow"`
+	IsReadOnly bool   `json:"isReadOnly"`
+}
+
+type ClientEnv struct {
+	AppName string `json:"appName"`
+	AppPort uint   `json:"appPort"`
 }
