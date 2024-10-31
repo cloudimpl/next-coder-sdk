@@ -43,13 +43,12 @@ type TaskOutput struct {
 }
 
 type ApiRequest struct {
-	Id           string            `json:"id"`
-	Method       string            `json:"method"`
-	Path         string            `json:"path"`
-	PathTemplate string            `json:"pathTemplate"`
-	Query        map[string]string `json:"query"`
-	Header       map[string]string `json:"header"`
-	Body         string            `json:"body"`
+	Id     string            `json:"id"`
+	Method string            `json:"method"`
+	Path   string            `json:"path"`
+	Query  map[string]string `json:"query"`
+	Header map[string]string `json:"header"`
+	Body   string            `json:"body"`
 }
 
 type ApiStartEvent struct {
