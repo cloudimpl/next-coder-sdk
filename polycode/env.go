@@ -13,10 +13,6 @@ func InitClientEnv() {
 	}
 
 	appName := os.Getenv("polycode_APP_NAME")
-	if appName == "" {
-		panic("app name not set")
-	}
-
 	appPortStr := os.Getenv("polycode_APP_PORT")
 	var appPort uint
 	if appPortStr == "" {
