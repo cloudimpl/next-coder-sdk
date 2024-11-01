@@ -61,10 +61,11 @@ type ApiStartEvent struct {
 }
 
 type TaskOutput struct {
-	IsAsync bool   `json:"isAsync"`
-	IsNull  bool   `json:"isNull"`
-	Output  any    `json:"output"`
-	Error   *Error `json:"error"`
+	IsAsync bool  `json:"isAsync"`
+	IsNull  bool  `json:"isNull"`
+	IsError bool  `json:"isError"`
+	Output  any   `json:"output"`
+	Error   Error `json:"error"`
 }
 
 type TaskCompleteEvent struct {

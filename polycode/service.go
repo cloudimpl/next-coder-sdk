@@ -36,7 +36,7 @@ func (r RemoteService) RequestReply(options TaskOptions, method string, input an
 		return ThrowError(err)
 	}
 	println(fmt.Sprintf("exec task output %v", output))
-	if output.Error != nil {
+	if output.IsError {
 		return ThrowError(output.Error)
 	}
 	return FutureFrom(output.Output)

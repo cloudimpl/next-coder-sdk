@@ -33,7 +33,7 @@ func invokeApiHandler(c *gin.Context) {
 		return
 	}
 
-	output := runTask(c, &input)
+	output := runTask(c, input)
 	println("client: api request completed")
 	c.JSON(http.StatusOK, output)
 }
@@ -46,7 +46,7 @@ func invokeServiceHandler(c *gin.Context) {
 		return
 	}
 
-	output := runTask(c, &input)
+	output := runTask(c, input)
 	println("client: service request completed")
 	c.JSON(http.StatusOK, output)
 }

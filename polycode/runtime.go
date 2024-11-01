@@ -127,7 +127,7 @@ func loadRoutes() []RouteData {
 	return routes
 }
 
-func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
+func runTask(ctx context.Context, event any) (evt TaskCompleteEvent) {
 	println(fmt.Sprintf("client: run task with event %v", reflect.TypeOf(event)))
 
 	defer func() {
@@ -136,40 +136,43 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 			// Check if it's the specific error
 			if err, ok := r.(error); ok {
 				if errors.Is(err, ErrTaskInProgress) {
-					fmt.Printf("task in progress\n")
-					evt = &TaskCompleteEvent{}
+					println("client: task in progress")
+					evt = TaskCompleteEvent{}
 				} else {
-					fmt.Printf("error %s\n", err.Error())
+					fmt.Printf("client: task completed with error %s\n", err.Error())
 					stackTrace := string(debug.Stack())
 					println(stackTrace)
-					evt = errorToTaskComplete(err)
+					evt = ErrorToTaskComplete(err)
 				}
 			} else {
-				fmt.Printf("error %s\n", err.Error())
+				fmt.Printf("client: task completed with error %s\n", err.Error())
 				stackTrace := string(debug.Stack())
 				println(stackTrace)
-				evt = errorToTaskComplete(ErrUnknownError)
+				evt = ErrorToTaskComplete(err)
 			}
 		}
 	}()
 
 	switch it := event.(type) {
-	case *TaskStartEvent:
+	case TaskStartEvent:
 		{
 			println("client: handle task start event")
 
 			service, err := getService(it.ServiceName)
 			if err != nil {
-				return errorToTaskComplete(err)
+				fmt.Printf("client: task completed with error %s\n", err.Error())
+				return ErrorToTaskComplete(err)
 			}
 
 			inputObj, err := service.GetInputType(it.EntryPoint)
 			if err != nil {
-				return errorToTaskComplete(err)
+				fmt.Printf("client: task completed with error %s\n", err.Error())
+				return ErrorToTaskComplete(err)
 			}
 			err = json.Unmarshal([]byte(it.Input.TargetReq), inputObj)
 			if err != nil {
-				return errorToTaskComplete(err)
+				fmt.Printf("client: task completed with error %s\n", err.Error())
+				return ErrorToTaskComplete(err)
 			}
 
 			isWorkflow := service.IsWorkflow(it.EntryPoint)
@@ -200,24 +203,24 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 			}
 
 			if err != nil {
-				return errorToTaskComplete(err)
+				fmt.Printf("client: task completed with error %s\n", err.Error())
+				return ErrorToTaskComplete(err)
 			}
 
-			output := TaskOutput{}
 			if ret == nil {
-				output.IsNull = true
+				println("client: task completed")
+				return NilValueToTaskComplete()
 			} else {
-				output.Output = ret
+				println("client: task completed")
+				return ValueToTaskComplete(ret)
 			}
-
-			println("client: task completed")
-			return outputToTaskComplete(output)
 		}
-	case *ApiStartEvent:
+	case ApiStartEvent:
 		{
 			println("client: handle http request")
 			if httpHandler == nil {
-				return errorToTaskComplete(ErrBadRequest)
+				fmt.Printf("client: task completed with error %s\n", ErrBadRequest.Error())
+				return ErrorToTaskComplete(ErrBadRequest)
 			}
 
 			apiCtx := ApiContext{
@@ -230,17 +233,21 @@ func runTask(ctx context.Context, event any) (evt *TaskCompleteEvent) {
 
 			req, err := ConvertToHttpRequest(newCtx, it.Request)
 			if err != nil {
-				println("client: failed to convert api request")
-				return errorToTaskComplete(err)
+				fmt.Printf("client: task completed with error %s\n", err.Error())
+				return ErrorToTaskComplete(err)
 			}
 
 			resp := invokeHandler(httpHandler, req)
 			println("client: task completed")
-			return &TaskCompleteEvent{Output: TaskOutput{IsAsync: false, IsNull: false, Output: resp, Error: nil}}
+			return ValueToTaskComplete(resp)
+		}
+	default:
+		{
+			fmt.Printf("client: invalid event type %v\n", reflect.TypeOf(event))
+			fmt.Printf("client: task completed with error %s\n", ErrBadRequest.Error())
+			return ErrorToTaskComplete(ErrBadRequest)
 		}
 	}
-
-	return errorToTaskComplete(ErrBadRequest)
 }
 
 func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request, error) {
@@ -277,15 +284,31 @@ func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request
 	return req, nil
 }
 
-func errorToTaskComplete(err error) *TaskCompleteEvent {
-	ret := ErrTaskExecError.Wrap(err)
-	println(fmt.Sprintf("client: task completed with error, %v", ret))
-	output := TaskOutput{IsAsync: false, IsNull: false, Error: &ret}
-	return outputToTaskComplete(output)
+func ValueToTaskComplete(val any) TaskCompleteEvent {
+	output := TaskOutput{
+		Output: val,
+	}
+	return TaskCompleteEvent{
+		Output: output,
+	}
 }
 
-func outputToTaskComplete(output TaskOutput) *TaskCompleteEvent {
-	return &TaskCompleteEvent{
+func NilValueToTaskComplete() TaskCompleteEvent {
+	output := TaskOutput{
+		IsNull: true,
+	}
+	return TaskCompleteEvent{
+		Output: output,
+	}
+}
+
+func ErrorToTaskComplete(err error) TaskCompleteEvent {
+	ret := ErrTaskExecError.Wrap(err)
+	output := TaskOutput{
+		IsError: true,
+		Error:   ret,
+	}
+	return TaskCompleteEvent{
 		Output: output,
 	}
 }
