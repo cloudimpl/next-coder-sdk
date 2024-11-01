@@ -51,10 +51,18 @@ func RegisterApi(engine *gin.Engine) {
 }
 
 func StartApp() {
-	go startApiServer()
-	sendStartApp()
-	fmt.Printf("client: app %s started on port %d\n", GetClientEnv().AppName, GetClientEnv().AppPort)
-	select {}
+	if len(os.Args) > 1 {
+		println("client: run cli command")
+		err := runCliCommand(os.Args[1:])
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		go startApiServer()
+		sendStartApp()
+		fmt.Printf("client: app %s started on port %d\n", GetClientEnv().AppName, GetClientEnv().AppPort)
+		select {}
+	}
 }
 
 func getService(serviceName string) (Service, error) {
