@@ -55,7 +55,6 @@ func (t Error) With(args ...any) Error {
 
 func (t Error) Error() string {
 	if t.CauseBy == "" {
-
 		return fmt.Sprintf("module: [%s], errorNo : [%d], reason: [%s]", t.Module, t.ErrorNo, fmt.Sprintf(t.Format, t.Args...))
 	} else {
 		return fmt.Sprintf("module: [%s], errorNo : [%d], reason: [%s], causeBy: [%s]", t.Module, t.ErrorNo, fmt.Sprintf(t.Format, t.Args...), t.CauseBy)

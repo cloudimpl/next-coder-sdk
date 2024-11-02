@@ -2,7 +2,6 @@ package polycode
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 type Future interface {
@@ -28,7 +27,6 @@ func (e ErrorFuture) IsNull() bool {
 }
 
 func (e ErrorFuture) Get(ret any) error {
-	println(fmt.Sprintf("future data %v\n", e.error))
 	return e.error
 }
 
@@ -45,7 +43,6 @@ func (f FutureImpl) IsNull() bool {
 }
 
 func (f FutureImpl) Get(ret any) error {
-	println(fmt.Sprintf("future data %v\n", f.data))
 	switch ret.(type) {
 	case map[string]interface{}:
 		{
@@ -60,7 +57,6 @@ func (f FutureImpl) Get(ret any) error {
 			switch ret.(type) {
 			case *string:
 				{
-					println("string type found")
 					*ret.(*string) = string(b)
 					return nil
 				}
@@ -93,6 +89,5 @@ func (n NullFutureImpl) IsNull() bool {
 }
 
 func (n NullFutureImpl) Get(ret any) error {
-	println("future data is null\n")
 	return nil
 }

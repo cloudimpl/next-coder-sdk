@@ -3,6 +3,7 @@ package polycode
 import (
 	"context"
 	"encoding/json"
+	"log"
 )
 
 // Order is used for specifying the order of results.
@@ -130,20 +131,19 @@ func (q Query) All(ctx context.Context, ret interface{}) error {
 	}
 	r, err := q.collection.client.QueryItems(q.collection.sessionId, req)
 	if err != nil {
-		println("error queryitem ", err.Error())
+		log.Println("client: error query item ", err.Error())
 		return err
 	}
 
 	b, err := json.Marshal(r)
 	if err != nil {
-		println("error marshal queryitem ", err.Error())
+		log.Println("client: error marshal query item ", err.Error())
 		return err
 	}
 
-	println("query all ", string(b))
 	err = json.Unmarshal(b, ret)
 	if err != nil {
-		println("error unmarshal queryitem ", err.Error())
+		log.Println("client: error unmarshal query item ", err.Error())
 		return err
 	}
 	return nil

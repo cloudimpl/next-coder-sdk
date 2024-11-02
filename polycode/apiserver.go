@@ -3,6 +3,7 @@ package polycode
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 )
 
@@ -26,20 +27,20 @@ func invokeHealthCheck(c *gin.Context) {
 }
 
 func invokeApiHandler(c *gin.Context) {
-	println("client: api request received")
+	log.Println("client: api request received")
 	var input ApiStartEvent
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
-	output := runTask(c, input)
-	println("client: api request completed")
+	output := runApi(c, input)
+	log.Println("client: api request completed")
 	c.JSON(http.StatusOK, output)
 }
 
 func invokeServiceHandler(c *gin.Context) {
-	println("client: service request received")
+	log.Println("client: service request received")
 	var input TaskStartEvent
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
@@ -47,6 +48,6 @@ func invokeServiceHandler(c *gin.Context) {
 	}
 
 	output := runTask(c, input)
-	println("client: service request completed")
+	log.Println("client: service request completed")
 	c.JSON(http.StatusOK, output)
 }

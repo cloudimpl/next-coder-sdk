@@ -12,7 +12,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"reflect"
 	"runtime/debug"
 	"strings"
 )
@@ -31,7 +30,7 @@ type Service interface {
 }
 
 func RegisterService(service Service) {
-	fmt.Println("client: register service ", service.GetName())
+	log.Println("client: register service ", service.GetName())
 
 	if serviceMap[service.GetName()] != nil {
 		panic(fmt.Sprintf("client: service %s already registered", service.GetName()))
@@ -41,7 +40,7 @@ func RegisterService(service Service) {
 }
 
 func RegisterApi(engine *gin.Engine) {
-	fmt.Println("client: register api")
+	log.Println("client: register api")
 
 	if httpHandler != nil {
 		panic("client: api already registered")
@@ -52,7 +51,7 @@ func RegisterApi(engine *gin.Engine) {
 
 func StartApp() {
 	if len(os.Args) > 1 {
-		println("client: run cli command")
+		log.Println("client: run cli command")
 		err := runCliCommand(os.Args[1:])
 		if err != nil {
 			panic(err)
@@ -60,7 +59,7 @@ func StartApp() {
 	} else {
 		go startApiServer()
 		sendStartApp()
-		fmt.Printf("client: app %s started on port %d\n", GetClientEnv().AppName, GetClientEnv().AppPort)
+		log.Printf("client: app %s started on port %d\n", GetClientEnv().AppName, GetClientEnv().AppPort)
 		select {}
 	}
 }
@@ -80,16 +79,16 @@ func loadAppConfig() AppConfig {
 
 	data, err := os.ReadFile(yamlFile)
 	if os.IsNotExist(err) {
-		log.Println("application.yml not found. Generating empty config...")
+		log.Println("client: application.yml not found. generating empty config")
 		yamlData = make(map[string]interface{}) // Create an empty config
 	} else if err != nil {
-		fmt.Printf("error reading yml file: %v\n", err)
+		log.Printf("client: error reading yml file: %v\n", err)
 		panic(err)
 	} else {
 		// Parse the YAML file into a map
 		err = yaml.Unmarshal(data, &yamlData)
 		if err != nil {
-			fmt.Printf("error unmarshalling yml: %v\n", err)
+			log.Printf("client: error unmarshalling yml: %v\n", err)
 			panic(err)
 		}
 	}
@@ -124,7 +123,7 @@ func loadRoutes() []RouteData {
 	var routes = make([]RouteData, 0)
 	if httpHandler != nil {
 		for _, route := range httpHandler.Routes() {
-			fmt.Printf("client: route found %s %s\n", route.Method, route.Path)
+			log.Printf("client: route found %s %s\n", route.Method, route.Path)
 
 			routes = append(routes, RouteData{
 				Method: route.Method,
@@ -135,127 +134,124 @@ func loadRoutes() []RouteData {
 	return routes
 }
 
-func runTask(ctx context.Context, event any) (evt TaskCompleteEvent) {
-	println(fmt.Sprintf("client: run task with event %v", reflect.TypeOf(event)))
-
+func runTask(ctx context.Context, event TaskStartEvent) (evt TaskCompleteEvent) {
+	log.Println("client: handle task start event")
 	defer func() {
 		// Recover from panic and check for a specific error
 		if r := recover(); r != nil {
-			// Check if it's the specific error
-			if err, ok := r.(error); ok {
-				if errors.Is(err, ErrTaskInProgress) {
-					println("client: task in progress")
-					evt = TaskCompleteEvent{}
-				} else {
-					fmt.Printf("client: task completed with error %s\n", err.Error())
-					stackTrace := string(debug.Stack())
-					println(stackTrace)
-					evt = ErrorToTaskComplete(err)
-				}
-			} else {
-				fmt.Printf("client: task completed with error %s\n", err.Error())
-				stackTrace := string(debug.Stack())
-				println(stackTrace)
-				evt = ErrorToTaskComplete(err)
+			err, ok := r.(error)
+
+			if ok && errors.Is(err, ErrTaskInProgress) {
+				log.Println("client: task in progress")
+				evt = NilValueToTaskComplete()
 			}
+
+			log.Printf("client: task completed with error %s\n", err.Error())
+			stackTrace := string(debug.Stack())
+			println(stackTrace)
+			evt = ErrorToTaskComplete(err)
 		}
 	}()
 
-	switch it := event.(type) {
-	case TaskStartEvent:
-		{
-			println("client: handle task start event")
-
-			service, err := getService(it.ServiceName)
-			if err != nil {
-				fmt.Printf("client: task completed with error %s\n", err.Error())
-				return ErrorToTaskComplete(err)
-			}
-
-			inputObj, err := service.GetInputType(it.EntryPoint)
-			if err != nil {
-				fmt.Printf("client: task completed with error %s\n", err.Error())
-				return ErrorToTaskComplete(err)
-			}
-			err = json.Unmarshal([]byte(it.Input.TargetReq), inputObj)
-			if err != nil {
-				fmt.Printf("client: task completed with error %s\n", err.Error())
-				return ErrorToTaskComplete(err)
-			}
-
-			isWorkflow := service.IsWorkflow(it.EntryPoint)
-
-			var ret any
-			if isWorkflow {
-				workflowCtx := WorkflowContext{
-					ctx:           ctx,
-					sessionId:     it.SessionId,
-					serviceClient: serviceClient,
-					config:        appConfig,
-				}
-
-				println(fmt.Sprintf("client: service %s exec workflow %s with session id %s", it.ServiceName,
-					it.EntryPoint, it.SessionId))
-				ret, err = service.ExecuteWorkflow(workflowCtx, it.EntryPoint, inputObj)
-			} else {
-				srvCtx := ServiceContext{
-					ctx:       ctx,
-					sessionId: it.SessionId,
-					dataStore: NewDatabase(serviceClient, it.SessionId),
-					config:    appConfig,
-				}
-
-				println(fmt.Sprintf("client: service %s exec handler %s with session id %s", it.ServiceName,
-					it.EntryPoint, it.SessionId))
-				ret, err = service.ExecuteService(srvCtx, it.EntryPoint, inputObj)
-			}
-
-			if err != nil {
-				fmt.Printf("client: task completed with error %s\n", err.Error())
-				return ErrorToTaskComplete(err)
-			}
-
-			if ret == nil {
-				println("client: task completed")
-				return NilValueToTaskComplete()
-			} else {
-				println("client: task completed")
-				return ValueToTaskComplete(ret)
-			}
-		}
-	case ApiStartEvent:
-		{
-			println("client: handle http request")
-			if httpHandler == nil {
-				fmt.Printf("client: task completed with error %s\n", ErrBadRequest.Error())
-				return ErrorToTaskComplete(ErrBadRequest)
-			}
-
-			apiCtx := ApiContext{
-				ctx:           ctx,
-				sessionId:     it.SessionId,
-				serviceClient: serviceClient,
-				config:        appConfig,
-			}
-			newCtx := context.WithValue(ctx, "polycode.context", apiCtx)
-
-			req, err := ConvertToHttpRequest(newCtx, it.Request)
-			if err != nil {
-				fmt.Printf("client: task completed with error %s\n", err.Error())
-				return ErrorToTaskComplete(err)
-			}
-
-			resp := invokeHandler(httpHandler, req)
-			println("client: task completed")
-			return ValueToTaskComplete(resp)
-		}
-	default:
-		{
-			fmt.Printf("client: invalid event type %v\n", reflect.TypeOf(event))
-			fmt.Printf("client: task completed with error %s\n", ErrBadRequest.Error())
-			return ErrorToTaskComplete(ErrBadRequest)
-		}
+	service, err := getService(event.ServiceName)
+	if err != nil {
+		fmt.Printf("client: task completed with error %s\n", err.Error())
+		return ErrorToTaskComplete(err)
 	}
+
+	inputObj, err := service.GetInputType(event.EntryPoint)
+	if err != nil {
+		fmt.Printf("client: task completed with error %s\n", err.Error())
+		return ErrorToTaskComplete(err)
+	}
+	err = json.Unmarshal([]byte(event.Input.TargetReq), inputObj)
+	if err != nil {
+		fmt.Printf("client: task completed with error %s\n", err.Error())
+		return ErrorToTaskComplete(err)
+	}
+
+	isWorkflow := service.IsWorkflow(event.EntryPoint)
+
+	var ret any
+	if isWorkflow {
+		workflowCtx := WorkflowContext{
+			ctx:           ctx,
+			sessionId:     event.SessionId,
+			serviceClient: serviceClient,
+			config:        appConfig,
+		}
+
+		println(fmt.Sprintf("client: service %s exec workflow %s with session id %s", event.ServiceName,
+			event.EntryPoint, event.SessionId))
+		ret, err = service.ExecuteWorkflow(workflowCtx, event.EntryPoint, inputObj)
+	} else {
+		srvCtx := ServiceContext{
+			ctx:       ctx,
+			sessionId: event.SessionId,
+			dataStore: NewDatabase(serviceClient, event.SessionId),
+			config:    appConfig,
+		}
+
+		println(fmt.Sprintf("client: service %s exec handler %s with session id %s", event.ServiceName,
+			event.EntryPoint, event.SessionId))
+		ret, err = service.ExecuteService(srvCtx, event.EntryPoint, inputObj)
+	}
+
+	if err != nil {
+		fmt.Printf("client: task completed with error %s\n", err.Error())
+		return ErrorToTaskComplete(err)
+	}
+
+	if ret == nil {
+		println("client: task completed")
+		return NilValueToTaskComplete()
+	} else {
+		println("client: task completed")
+		return ValueToTaskComplete(ret)
+	}
+}
+
+func runApi(ctx context.Context, event ApiStartEvent) (evt TaskCompleteEvent) {
+	log.Println("client: handle http request")
+	defer func() {
+		// Recover from panic and check for a specific error
+		if r := recover(); r != nil {
+			err, ok := r.(error)
+
+			if ok && errors.Is(err, ErrTaskInProgress) {
+				log.Println("client: api in progress")
+				evt = NilValueToTaskComplete()
+			}
+
+			log.Printf("client: api completed with error %s\n", err.Error())
+			stackTrace := string(debug.Stack())
+			println(stackTrace)
+			evt = ErrorToTaskComplete(err)
+		}
+	}()
+
+	if httpHandler == nil {
+		log.Printf("client: task completed with error %s\n", ErrBadRequest.Error())
+		return ErrorToTaskComplete(ErrBadRequest)
+	}
+
+	apiCtx := ApiContext{
+		ctx:           ctx,
+		sessionId:     event.SessionId,
+		serviceClient: serviceClient,
+		config:        appConfig,
+	}
+	newCtx := context.WithValue(ctx, "polycode.context", apiCtx)
+
+	req, err := ConvertToHttpRequest(newCtx, event.Request)
+	if err != nil {
+		fmt.Printf("client: task completed with error %s\n", err.Error())
+		return ErrorToTaskComplete(err)
+	}
+
+	resp := invokeHandler(httpHandler, req)
+	println("client: task completed")
+	return ValueToTaskComplete(resp)
 }
 
 func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request, error) {
