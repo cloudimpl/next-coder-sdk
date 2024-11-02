@@ -20,7 +20,6 @@ func (r RemoteService) RequestReply(options TaskOptions, method string, input an
 	}
 
 	taskInput := TaskInput{
-		NoArg:     false,
 		TargetReq: string(b),
 	}
 	req := ExecRequest{

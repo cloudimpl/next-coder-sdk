@@ -11,10 +11,10 @@ type BackoffStrategy struct {
 }
 
 type TaskOptions struct {
-	Timeout         time.Duration    // Maximum time allowed for the task to complete
-	Retries         int              // Number of times to retry the task upon failure
-	RetryOnFail     bool             // Whether to retry the task automatically on failure
-	BackoffStrategy *BackoffStrategy // Backoff strategy for handling retries
+	Timeout         time.Duration   // Maximum time allowed for the task to complete
+	Retries         int             // Number of times to retry the task upon failure
+	RetryOnFail     bool            // Whether to retry the task automatically on failure
+	BackoffStrategy BackoffStrategy // Backoff strategy for handling retries
 	PartitionKey    string
 	TenantId        string
 }
@@ -31,18 +31,15 @@ func (t TaskOptions) WithTimeout(timeout time.Duration) TaskOptions {
 
 type TaskInput struct {
 	Checksum  uint64 `json:"checksum"`
-	NoArg     bool   `json:"noArg"`
 	TargetReq string `json:"targetReq"`
 }
 
 type TaskStartEvent struct {
-	Id           string    `json:"id"`
-	SessionId    string    `json:"sessionId"`
-	TenantId     string    `json:"tenantId"`
-	ServiceName  string    `json:"serviceName"`
-	PartitionKey string    `json:"partitionKey"`
-	EntryPoint   string    `json:"entryPoint"`
-	Input        TaskInput `json:"input"`
+	SessionId   string      `json:"sessionId"`
+	ServiceName string      `json:"serviceName"`
+	EntryPoint  string      `json:"entryPoint"`
+	Input       TaskInput   `json:"input"`
+	Options     TaskOptions `json:"options"`
 }
 
 type ApiRequest struct {
@@ -55,9 +52,10 @@ type ApiRequest struct {
 }
 
 type ApiStartEvent struct {
-	SessionId  string     `json:"sessionId"`
-	Controller string     `json:"controller"`
-	Request    ApiRequest `json:"request"`
+	SessionId  string      `json:"sessionId"`
+	Controller string      `json:"controller"`
+	Request    ApiRequest  `json:"request"`
+	Options    TaskOptions `json:"options"`
 }
 
 type TaskOutput struct {
