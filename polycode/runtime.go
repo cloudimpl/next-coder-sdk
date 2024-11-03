@@ -139,12 +139,12 @@ func runTask(ctx context.Context, event TaskStartEvent) (evt TaskCompleteEvent) 
 			if ok && errors.Is(err, ErrTaskInProgress) {
 				log.Println("client: task in progress")
 				evt = ValueToTaskComplete(nil)
+			} else {
+				log.Printf("client: task completed with error %s\n", err.Error())
+				stackTrace := string(debug.Stack())
+				println(stackTrace)
+				evt = ErrorToTaskComplete(err)
 			}
-
-			log.Printf("client: task completed with error %s\n", err.Error())
-			stackTrace := string(debug.Stack())
-			println(stackTrace)
-			evt = ErrorToTaskComplete(err)
 		}
 	}()
 
@@ -212,12 +212,12 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt TaskCompleteEvent) {
 			if ok && errors.Is(err, ErrTaskInProgress) {
 				log.Println("client: api in progress")
 				evt = ValueToTaskComplete(nil)
+			} else {
+				log.Printf("client: api completed with error %s\n", err.Error())
+				stackTrace := string(debug.Stack())
+				println(stackTrace)
+				evt = ErrorToTaskComplete(err)
 			}
-
-			log.Printf("client: api completed with error %s\n", err.Error())
-			stackTrace := string(debug.Stack())
-			println(stackTrace)
-			evt = ErrorToTaskComplete(err)
 		}
 	}()
 
