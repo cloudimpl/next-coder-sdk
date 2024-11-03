@@ -160,7 +160,7 @@ func runTask(ctx context.Context, event TaskStartEvent) (evt TaskCompleteEvent) 
 		return ErrorToTaskComplete(err)
 	}
 
-	err = ConvertType(event.Input, inputObj)
+	err = ConvertType(event.Input.Input, inputObj)
 	if err != nil {
 		fmt.Printf("client: task completed with error %s\n", err.Error())
 		return ErrorToTaskComplete(err)
