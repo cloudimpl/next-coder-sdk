@@ -2,25 +2,19 @@ package polycode
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"mime"
 	"net/http"
 	"strings"
 )
 
-type Response struct {
-	StatusCode        int                 `json:"statusCode"`
-	Headers           map[string]string   `json:"headers"`
-	MultiValueHeaders map[string][]string `json:"multiValueHeaders"`
-	Body              string              `json:"body"`
-	IsBase64Encoded   bool                `json:"isBase64Encoded,omitempty"`
-}
-
 // ResponseWriter implements the http.ResponseWriter interface
 // in order to support the API Gateway Lambda HTTP "protocol".
 type ResponseWriter struct {
-	out           Response
+	out           ApiResponse
 	buf           bytes.Buffer
 	header        http.Header
 	wroteHeader   bool
@@ -58,18 +52,15 @@ func (w *ResponseWriter) WriteHeader(status int) {
 	w.out.StatusCode = status
 
 	h := make(map[string]string)
-	mvh := make(map[string][]string)
-
 	for k, v := range w.Header() {
 		if len(v) == 1 {
 			h[k] = v[0]
 		} else if len(v) > 1 {
-			mvh[k] = v
+			h[k] = strings.Join(v, ",")
 		}
 	}
 
-	w.out.Headers = h
-	w.out.MultiValueHeaders = mvh
+	w.out.Header = h
 	w.wroteHeader = true
 }
 
@@ -79,7 +70,7 @@ func (w *ResponseWriter) CloseNotify() <-chan bool {
 }
 
 // End the request.
-func (w *ResponseWriter) End() Response {
+func (w *ResponseWriter) End() ApiResponse {
 	w.out.IsBase64Encoded = isBinary(w.header)
 
 	if w.out.IsBase64Encoded {
@@ -132,15 +123,51 @@ type SerializableRequest struct {
 	Body   []byte
 }
 
+func convertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request, error) {
+	// Build the URL
+	url := apiReq.Path
+	if len(apiReq.Query) > 0 {
+		queryParams := "?"
+		for key, value := range apiReq.Query {
+			queryParams += key + "=" + value + "&"
+		}
+		queryParams = strings.TrimSuffix(queryParams, "&")
+		url += queryParams
+	}
+
+	// Create a new HTTP request
+	var body io.Reader
+	if apiReq.Body != "" {
+		body = bytes.NewReader([]byte(apiReq.Body))
+	} else {
+		body = nil
+	}
+
+	println("client: create http request with workflow context")
+	req, err := http.NewRequestWithContext(ctx, apiReq.Method, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add headers
+	for key, value := range apiReq.Header {
+		req.Header.Set(key, value)
+	}
+
+	return req, nil
+}
+
 // Manually invoke an HTTP handler
-func invokeHandler(handler http.Handler, req *http.Request) Response {
+func invokeHandler(ctx context.Context, handler http.Handler, req ApiRequest) (ApiResponse, error) {
 	fmt.Printf("client: invokeHandler request: %v\n", req)
-	// Create a custom ResponseWriter
+	httpReq, err := convertToHttpRequest(ctx, req)
+	if err != nil {
+		return ApiResponse{}, err
+	}
+
 	customWriter := &ResponseWriter{}
-	// Call the handler's ServeHTTP method
-	handler.ServeHTTP(customWriter, req)
+	handler.ServeHTTP(customWriter, httpReq)
 	res := customWriter.End()
 	fmt.Printf("client: invokeHandler response: %v\n", res)
-	// Return the status code and the response body
-	return res
+	return res, nil
 }

@@ -2,9 +2,37 @@ package polycode
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 )
+
+type Response struct {
+	output any
+	error  any
+}
+
+func (r Response) IsError() bool {
+	return r.error != nil
+}
+
+func (r Response) HasResult() bool {
+	return r.output != nil
+}
+
+func (r Response) Get(ret any) error {
+	if r.error != nil {
+		return r.error.(error)
+	}
+
+	return ConvertType(r.output, ret)
+}
+
+func (r Response) GetAny() (any, error) {
+	if r.error != nil {
+		return nil, r.error.(error)
+	} else {
+		return r.output, nil
+	}
+}
 
 type RemoteService struct {
 	ctx           context.Context
@@ -13,15 +41,11 @@ type RemoteService struct {
 	serviceClient *ServiceClient
 }
 
-func (r RemoteService) RequestReply(options TaskOptions, method string, input any) Future {
-	b, err := json.Marshal(input)
-	if err != nil {
-		return ThrowError(err)
+func (r RemoteService) RequestReply(options TaskOptions, method string, input any) (Response, error) {
+	taskInput := TaskInput{
+		Input: input,
 	}
 
-	taskInput := TaskInput{
-		TargetReq: string(b),
-	}
 	req := ExecRequest{
 		ServiceId:  r.serviceId,
 		EntryPoint: method,
@@ -31,17 +55,17 @@ func (r RemoteService) RequestReply(options TaskOptions, method string, input an
 
 	output, err := r.serviceClient.ExecService(r.sessionId, req)
 	if err != nil {
-		println(fmt.Sprintf("execTask error %s", err.Error()))
-		return ThrowError(err)
+		fmt.Printf("client: exec task error: %v\n", err)
+		return Response{}, err
 	}
-	println(fmt.Sprintf("exec task output %v", output))
-	if output.IsError {
-		return ThrowError(output.Error)
-	}
-	return FutureFrom(output.Output)
+
+	fmt.Printf("client: exec task output: %v\n", output)
+	return Response{
+		output: output.Output,
+		error:  output.Error,
+	}, nil
 }
 
 func (r RemoteService) Send(options TaskOptions, method string, input any) error {
-	//TODO implement me
 	panic("implement me")
 }

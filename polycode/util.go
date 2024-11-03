@@ -1,6 +1,9 @@
 package polycode
 
-import "reflect"
+import (
+	"encoding/json"
+	"reflect"
+)
 
 func ToMap(data map[string][]string) map[string]any {
 	// Create a map to hold the final map[string]interface{}
@@ -61,7 +64,6 @@ func IsPointer(data interface{}) bool {
 	return reflect.TypeOf(data).Kind() == reflect.Ptr
 }
 
-// Helper function to convert map[interface{}]interface{} to map[string]interface{}
 func ConvertMap(m interface{}) interface{} {
 	switch x := m.(type) {
 	case map[interface{}]interface{}:
@@ -76,4 +78,13 @@ func ConvertMap(m interface{}) interface{} {
 		}
 	}
 	return m
+}
+
+func ConvertType(input any, output any) error {
+	in, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(in, output)
 }

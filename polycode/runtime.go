@@ -1,19 +1,15 @@
 package polycode
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v3"
-	"io"
 	"log"
-	"net/http"
 	"os"
 	"runtime/debug"
-	"strings"
 )
 
 var serviceClient = NewServiceClient("http://127.0.0.1:9999")
@@ -143,7 +139,7 @@ func runTask(ctx context.Context, event TaskStartEvent) (evt TaskCompleteEvent) 
 
 			if ok && errors.Is(err, ErrTaskInProgress) {
 				log.Println("client: task in progress")
-				evt = NilValueToTaskComplete()
+				evt = ValueToTaskComplete(nil)
 			}
 
 			log.Printf("client: task completed with error %s\n", err.Error())
@@ -164,7 +160,8 @@ func runTask(ctx context.Context, event TaskStartEvent) (evt TaskCompleteEvent) 
 		fmt.Printf("client: task completed with error %s\n", err.Error())
 		return ErrorToTaskComplete(err)
 	}
-	err = json.Unmarshal([]byte(event.Input.TargetReq), inputObj)
+
+	err = ConvertType(event.Input, inputObj)
 	if err != nil {
 		fmt.Printf("client: task completed with error %s\n", err.Error())
 		return ErrorToTaskComplete(err)
@@ -204,10 +201,16 @@ func runTask(ctx context.Context, event TaskStartEvent) (evt TaskCompleteEvent) 
 
 	if ret == nil {
 		println("client: task completed")
-		return NilValueToTaskComplete()
+		return ValueToTaskComplete(nil)
 	} else {
+		retJson, err := json.Marshal(ret)
+		if err != nil {
+			fmt.Printf("client: task completed with error %s\n", err.Error())
+			return ErrorToTaskComplete(err)
+		}
+
 		println("client: task completed")
-		return ValueToTaskComplete(ret)
+		return ValueToTaskComplete(string(retJson))
 	}
 }
 
@@ -220,7 +223,7 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt TaskCompleteEvent) {
 
 			if ok && errors.Is(err, ErrTaskInProgress) {
 				log.Println("client: api in progress")
-				evt = NilValueToTaskComplete()
+				evt = ValueToTaskComplete(nil)
 			}
 
 			log.Printf("client: api completed with error %s\n", err.Error())
@@ -243,76 +246,42 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt TaskCompleteEvent) {
 	}
 	newCtx := context.WithValue(ctx, "polycode.context", apiCtx)
 
-	req, err := ConvertToHttpRequest(newCtx, event.Request)
+	res, err := invokeHandler(newCtx, httpHandler, event.Request)
 	if err != nil {
 		fmt.Printf("client: task completed with error %s\n", err.Error())
 		return ErrorToTaskComplete(err)
 	}
 
-	resp := invokeHandler(httpHandler, req)
-	println("client: task completed")
-	return ValueToTaskComplete(resp)
-}
-
-func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request, error) {
-	// Build the URL
-	url := apiReq.Path
-	if len(apiReq.Query) > 0 {
-		queryParams := "?"
-		for key, value := range apiReq.Query {
-			queryParams += key + "=" + value + "&"
-		}
-		queryParams = strings.TrimSuffix(queryParams, "&")
-		url += queryParams
-	}
-
-	// Create a new HTTP request
-	var body io.Reader
-	if apiReq.Body != "" {
-		body = bytes.NewReader([]byte(apiReq.Body))
-	} else {
-		body = nil
-	}
-
-	println("client: create http request with workflow context")
-	req, err := http.NewRequestWithContext(ctx, apiReq.Method, url, body)
+	resJson, err := json.Marshal(res)
 	if err != nil {
-		return nil, err
+		fmt.Printf("client: task completed with error %s\n", err.Error())
+		return ErrorToTaskComplete(err)
 	}
 
-	// Add headers
-	for key, value := range apiReq.Header {
-		req.Header.Set(key, value)
-	}
-
-	return req, nil
+	println("client: task completed")
+	return ValueToTaskComplete(string(resJson))
 }
 
-func ValueToTaskComplete(val any) TaskCompleteEvent {
-	output := TaskOutput{
-		Output: val,
+func ValueToTaskComplete(output any) TaskCompleteEvent {
+	taskOutput := TaskOutput{
+		Output:  output,
+		IsError: false,
+		Error:   Error{},
 	}
-	return TaskCompleteEvent{
-		Output: output,
-	}
-}
 
-func NilValueToTaskComplete() TaskCompleteEvent {
-	output := TaskOutput{
-		IsNull: true,
-	}
 	return TaskCompleteEvent{
-		Output: output,
+		Output: taskOutput,
 	}
 }
 
 func ErrorToTaskComplete(err error) TaskCompleteEvent {
-	ret := ErrTaskExecError.Wrap(err)
-	output := TaskOutput{
+	taskOutput := TaskOutput{
+		Output:  nil,
 		IsError: true,
-		Error:   ret,
+		Error:   ErrTaskExecError.Wrap(err),
 	}
+
 	return TaskCompleteEvent{
-		Output: output,
+		Output: taskOutput,
 	}
 }
