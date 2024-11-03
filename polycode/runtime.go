@@ -2,7 +2,6 @@ package polycode
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -199,19 +198,8 @@ func runTask(ctx context.Context, event TaskStartEvent) (evt TaskCompleteEvent) 
 		return ErrorToTaskComplete(err)
 	}
 
-	if ret == nil {
-		println("client: task completed")
-		return ValueToTaskComplete(nil)
-	} else {
-		retJson, err := json.Marshal(ret)
-		if err != nil {
-			fmt.Printf("client: task completed with error %s\n", err.Error())
-			return ErrorToTaskComplete(err)
-		}
-
-		println("client: task completed")
-		return ValueToTaskComplete(string(retJson))
-	}
+	println("client: task completed")
+	return ValueToTaskComplete(ret)
 }
 
 func runApi(ctx context.Context, event ApiStartEvent) (evt TaskCompleteEvent) {
@@ -252,14 +240,8 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt TaskCompleteEvent) {
 		return ErrorToTaskComplete(err)
 	}
 
-	resJson, err := json.Marshal(res)
-	if err != nil {
-		fmt.Printf("client: task completed with error %s\n", err.Error())
-		return ErrorToTaskComplete(err)
-	}
-
 	println("client: task completed")
-	return ValueToTaskComplete(string(resJson))
+	return ValueToTaskComplete(res)
 }
 
 func ValueToTaskComplete(output any) TaskCompleteEvent {
