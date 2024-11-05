@@ -29,25 +29,52 @@ func invokeHealthCheck(c *gin.Context) {
 func invokeApiHandler(c *gin.Context) {
 	log.Println("client: api request received")
 	var input ApiStartEvent
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-		return
-	}
 
-	output := runApi(c, input)
-	log.Println("client: api request completed")
-	c.JSON(http.StatusOK, output)
+	if err := c.ShouldBindJSON(&input); err != nil {
+		errorOutput := ErrorEvent{
+			Error: ErrInternal.Wrap(err),
+		}
+
+		c.JSON(http.StatusInternalServerError, errorOutput)
+		log.Println("client: api request error")
+	} else {
+		output, err := runApi(c, input)
+		if err != nil {
+			errorOutput := ErrorEvent{
+				Error: ErrInternal.Wrap(err),
+			}
+
+			c.JSON(http.StatusInternalServerError, errorOutput)
+			log.Println("client: api request error")
+		} else {
+			c.JSON(http.StatusOK, output)
+			log.Println("client: api request completed")
+		}
+	}
 }
 
 func invokeServiceHandler(c *gin.Context) {
 	log.Println("client: service request received")
-	var input TaskStartEvent
+	var input ServiceStartEvent
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-		return
-	}
+		errorOutput := ErrorEvent{
+			Error: ErrInternal.Wrap(err),
+		}
 
-	output := runTask(c, input)
-	log.Println("client: service request completed")
-	c.JSON(http.StatusOK, output)
+		c.JSON(http.StatusInternalServerError, errorOutput)
+		log.Println("client: service request error")
+	} else {
+		output, err := runService(c, input)
+		if err != nil {
+			errorOutput := ErrorEvent{
+				Error: ErrInternal.Wrap(err),
+			}
+
+			c.JSON(http.StatusInternalServerError, errorOutput)
+			log.Println("client: service request error")
+		} else {
+			c.JSON(http.StatusOK, output)
+			log.Println("client: service request completed")
+		}
+	}
 }

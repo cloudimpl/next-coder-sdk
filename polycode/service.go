@@ -43,15 +43,11 @@ type RemoteService struct {
 }
 
 func (r RemoteService) RequestReply(options TaskOptions, method string, input any) Response {
-	taskInput := TaskInput{
-		Input: input,
-	}
-
 	req := ExecServiceRequest{
 		Service: r.service,
 		Method:  method,
 		Options: options,
-		Input:   taskInput,
+		Input:   input,
 	}
 
 	output, err := r.serviceClient.ExecService(r.sessionId, req)

@@ -129,47 +129,45 @@ func loadRoutes() []RouteData {
 	return routes
 }
 
-func runTask(ctx context.Context, event TaskStartEvent) (evt TaskCompleteEvent) {
+func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceCompleteEvent, err error) {
 	log.Println("client: handle task start event")
 	defer func() {
 		// Recover from panic and check for a specific error
 		if r := recover(); r != nil {
-			err, ok := r.(error)
+			recovered, ok := r.(error)
 
-			if ok && errors.Is(err, ErrTaskInProgress) {
+			if ok && errors.Is(recovered, ErrTaskInProgress) {
 				log.Println("client: task in progress")
-				evt = ValueToTaskComplete(nil)
+				evt = ValueToServiceComplete(nil)
 			} else {
-				log.Printf("client: task completed with error %s\n", err.Error())
+				log.Printf("client: task error %s\n", recovered.Error())
 				stackTrace := string(debug.Stack())
 				println(stackTrace)
-				evt = ErrorToTaskComplete(err)
+				err = recovered
 			}
 		}
 	}()
 
-	service, err := getService(event.ServiceName)
+	service, err := getService(event.Service)
 	if err != nil {
-		fmt.Printf("client: task completed with error %s\n", err.Error())
-		return ErrorToTaskComplete(err)
+		fmt.Printf("client: task error %s\n", err.Error())
+		return ServiceCompleteEvent{}, err
 	}
 
-	inputObj, err := service.GetInputType(event.EntryPoint)
+	inputObj, err := service.GetInputType(event.Method)
 	if err != nil {
-		fmt.Printf("client: task completed with error %s\n", err.Error())
-		return ErrorToTaskComplete(err)
+		fmt.Printf("client: task error %s\n", err.Error())
+		return ServiceCompleteEvent{}, err
 	}
 
-	err = ConvertType(event.Input.Input, inputObj)
+	err = ConvertType(event.Input, inputObj)
 	if err != nil {
-		fmt.Printf("client: task completed with error %s\n", err.Error())
-		return ErrorToTaskComplete(err)
+		fmt.Printf("client: task error %s\n", err.Error())
+		return ServiceCompleteEvent{}, err
 	}
-
-	isWorkflow := service.IsWorkflow(event.EntryPoint)
 
 	var ret any
-	if isWorkflow {
+	if service.IsWorkflow(event.Method) {
 		workflowCtx := WorkflowContext{
 			ctx:           ctx,
 			sessionId:     event.SessionId,
@@ -177,9 +175,9 @@ func runTask(ctx context.Context, event TaskStartEvent) (evt TaskCompleteEvent) 
 			config:        appConfig,
 		}
 
-		println(fmt.Sprintf("client: service %s exec workflow %s with session id %s", event.ServiceName,
-			event.EntryPoint, event.SessionId))
-		ret, err = service.ExecuteWorkflow(workflowCtx, event.EntryPoint, inputObj)
+		println(fmt.Sprintf("client: service %s exec workflow %s with session id %s", event.Service,
+			event.Method, event.SessionId))
+		ret, err = service.ExecuteWorkflow(workflowCtx, event.Method, inputObj)
 	} else {
 		srvCtx := ServiceContext{
 			ctx:       ctx,
@@ -188,42 +186,49 @@ func runTask(ctx context.Context, event TaskStartEvent) (evt TaskCompleteEvent) 
 			config:    appConfig,
 		}
 
-		println(fmt.Sprintf("client: service %s exec handler %s with session id %s", event.ServiceName,
-			event.EntryPoint, event.SessionId))
-		ret, err = service.ExecuteService(srvCtx, event.EntryPoint, inputObj)
+		println(fmt.Sprintf("client: service %s exec handler %s with session id %s", event.Service,
+			event.Method, event.SessionId))
+		ret, err = service.ExecuteService(srvCtx, event.Method, inputObj)
 	}
 
 	if err != nil {
 		fmt.Printf("client: task completed with error %s\n", err.Error())
-		return ErrorToTaskComplete(err)
+		return ErrorToServiceComplete(err), nil
 	}
 
 	println("client: task completed")
-	return ValueToTaskComplete(ret)
+	return ValueToServiceComplete(ret), nil
 }
 
-func runApi(ctx context.Context, event ApiStartEvent) (evt TaskCompleteEvent) {
+func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent, err error) {
 	log.Println("client: handle http request")
 	defer func() {
 		// Recover from panic and check for a specific error
 		if r := recover(); r != nil {
-			err, ok := r.(error)
+			recovered, ok := r.(error)
 
-			if ok && errors.Is(err, ErrTaskInProgress) {
+			if ok && errors.Is(recovered, ErrTaskInProgress) {
 				log.Println("client: api in progress")
-				evt = ValueToTaskComplete(nil)
+				evt = ApiCompleteEvent{
+					Response: ApiResponse{
+						StatusCode:      200,
+						Header:          make(map[string]string),
+						Body:            "",
+						IsBase64Encoded: false,
+					},
+				}
 			} else {
-				log.Printf("client: api completed with error %s\n", err.Error())
+				log.Printf("client: api error %s\n", recovered.Error())
 				stackTrace := string(debug.Stack())
 				println(stackTrace)
-				evt = ErrorToTaskComplete(err)
+				err = recovered
 			}
 		}
 	}()
 
 	if httpHandler == nil {
-		log.Printf("client: task completed with error %s\n", ErrBadRequest.Error())
-		return ErrorToTaskComplete(ErrBadRequest)
+		println("client: api error, not registered")
+		return ApiCompleteEvent{}, fmt.Errorf("api not registered")
 	}
 
 	apiCtx := ApiContext{
@@ -232,38 +237,32 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt TaskCompleteEvent) {
 		serviceClient: serviceClient,
 		config:        appConfig,
 	}
-	newCtx := context.WithValue(ctx, "polycode.context", apiCtx)
 
-	res, err := invokeHandler(newCtx, httpHandler, event.Request)
+	newCtx := context.WithValue(ctx, "polycode.context", apiCtx)
+	httpReq, err := convertToHttpRequest(newCtx, event.Request)
 	if err != nil {
-		fmt.Printf("client: task completed with error %s\n", err.Error())
-		return ErrorToTaskComplete(err)
+		return ApiCompleteEvent{}, err
 	}
 
-	println("client: task completed")
-	return ValueToTaskComplete(res)
+	res := invokeHandler(httpHandler, httpReq)
+	println("client: api completed")
+	return ApiCompleteEvent{
+		Response: res,
+	}, nil
 }
 
-func ValueToTaskComplete(output any) TaskCompleteEvent {
-	taskOutput := TaskOutput{
+func ValueToServiceComplete(output any) ServiceCompleteEvent {
+	return ServiceCompleteEvent{
 		Output:  output,
 		IsError: false,
 		Error:   Error{},
 	}
-
-	return TaskCompleteEvent{
-		Output: taskOutput,
-	}
 }
 
-func ErrorToTaskComplete(err error) TaskCompleteEvent {
-	taskOutput := TaskOutput{
+func ErrorToServiceComplete(err error) ServiceCompleteEvent {
+	return ServiceCompleteEvent{
 		Output:  nil,
 		IsError: true,
 		Error:   ErrTaskExecError.Wrap(err),
-	}
-
-	return TaskCompleteEvent{
-		Output: taskOutput,
 	}
 }

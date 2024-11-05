@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -158,16 +157,8 @@ func convertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request
 }
 
 // Manually invoke an HTTP handler
-func invokeHandler(ctx context.Context, handler http.Handler, req ApiRequest) (ApiResponse, error) {
-	fmt.Printf("client: invokeHandler request: %v\n", req)
-	httpReq, err := convertToHttpRequest(ctx, req)
-	if err != nil {
-		return ApiResponse{}, err
-	}
-
+func invokeHandler(handler http.Handler, httpReq *http.Request) ApiResponse {
 	customWriter := &ResponseWriter{}
 	handler.ServeHTTP(customWriter, httpReq)
-	res := customWriter.End()
-	fmt.Printf("client: invokeHandler response: %v\n", res)
-	return res, nil
+	return customWriter.End()
 }

@@ -29,28 +29,30 @@ func (t TaskOptions) WithTimeout(timeout time.Duration) TaskOptions {
 	return t
 }
 
-type TaskInput struct {
-	Checksum uint64 `json:"checksum"`
-	Input    any    `json:"input"`
+type ServiceStartEvent struct {
+	SessionId string `json:"sessionId"`
+	Service   string `json:"service"`
+	Method    string `json:"method"`
+	Input     any    `json:"input"`
 }
 
-type TaskOutput struct {
-	IsAsync bool  `json:"isAsync"`
+type ServiceCompleteEvent struct {
 	IsError bool  `json:"isError"`
 	Output  any   `json:"output"`
 	Error   Error `json:"error"`
 }
 
-type TaskCompleteEvent struct {
-	Output TaskOutput
+type ApiStartEvent struct {
+	SessionId string     `json:"sessionId"`
+	Request   ApiRequest `json:"request"`
 }
 
-type TaskStartEvent struct {
-	SessionId   string      `json:"sessionId"`
-	ServiceName string      `json:"serviceName"`
-	EntryPoint  string      `json:"entryPoint"`
-	Input       TaskInput   `json:"input"`
-	Options     TaskOptions `json:"options"`
+type ApiCompleteEvent struct {
+	Response ApiResponse `json:"response"`
+}
+
+type ErrorEvent struct {
+	Error Error
 }
 
 type ApiRequest struct {
@@ -68,13 +70,6 @@ type ApiResponse struct {
 	Header          map[string]string `json:"header"`
 	Body            string            `json:"body"`
 	IsBase64Encoded bool              `json:"isBase64Encoded"`
-}
-
-type ApiStartEvent struct {
-	SessionId  string      `json:"sessionId"`
-	Controller string      `json:"controller"`
-	Request    ApiRequest  `json:"request"`
-	Options    TaskOptions `json:"options"`
 }
 
 type RouteData struct {
