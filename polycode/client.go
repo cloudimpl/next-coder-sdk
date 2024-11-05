@@ -27,11 +27,11 @@ type StartAppRequest struct {
 	Routes     []RouteData   `json:"routes"`
 }
 
-type ExecRequest struct {
-	ServiceId  string      `json:"serviceId"`
-	EntryPoint string      `json:"entryPoint"`
-	Options    TaskOptions `json:"options"`
-	Input      TaskInput   `json:"input"`
+type ExecServiceRequest struct {
+	Service string      `json:"service"`
+	Method  string      `json:"method"`
+	Options TaskOptions `json:"options"`
+	Input   TaskInput   `json:"input"`
 }
 
 // PutRequest represents the JSON structure for put operations
@@ -89,7 +89,7 @@ func (sc *ServiceClient) StartApp(req StartAppRequest) error {
 }
 
 // ExecService executes a service with the given request
-func (sc *ServiceClient) ExecService(sessionId string, req ExecRequest) (TaskOutput, error) {
+func (sc *ServiceClient) ExecService(sessionId string, req ExecServiceRequest) (TaskOutput, error) {
 	var res TaskOutput
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/service/exec", req, &res)
 	if err != nil {

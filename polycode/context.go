@@ -73,8 +73,8 @@ func (wc WorkflowContext) Value(key any) any {
 	return wc.ctx.Value(key)
 }
 
-func (wc WorkflowContext) Service(serviceId string) (RemoteService, error) {
-	return RemoteService{ctx: wc.ctx, sessionId: wc.sessionId, serviceId: serviceId, serviceClient: wc.serviceClient}, nil
+func (wc WorkflowContext) Service(service string) (RemoteService, error) {
+	return RemoteService{ctx: wc.ctx, sessionId: wc.sessionId, service: service, serviceClient: wc.serviceClient}, nil
 }
 
 type ApiContext struct {
@@ -104,6 +104,6 @@ func (wc ApiContext) Value(key any) any {
 	return wc.ctx.Value(key)
 }
 
-func (wc ApiContext) Service(serviceId string) (RemoteService, error) {
-	return RemoteService{ctx: wc.ctx, sessionId: wc.sessionId, serviceId: serviceId, serviceClient: wc.serviceClient}, nil
+func (wc ApiContext) Service(service string) (RemoteService, error) {
+	return RemoteService{ctx: wc.ctx, sessionId: wc.sessionId, service: service, serviceClient: wc.serviceClient}, nil
 }

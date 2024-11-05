@@ -38,7 +38,7 @@ func (r Response) GetAny() (any, error) {
 type RemoteService struct {
 	ctx           context.Context
 	sessionId     string
-	serviceId     string
+	service       string
 	serviceClient *ServiceClient
 }
 
@@ -47,11 +47,11 @@ func (r RemoteService) RequestReply(options TaskOptions, method string, input an
 		Input: input,
 	}
 
-	req := ExecRequest{
-		ServiceId:  r.serviceId,
-		EntryPoint: method,
-		Options:    options,
-		Input:      taskInput,
+	req := ExecServiceRequest{
+		Service: r.service,
+		Method:  method,
+		Options: options,
+		Input:   taskInput,
 	}
 
 	output, err := r.serviceClient.ExecService(r.sessionId, req)
