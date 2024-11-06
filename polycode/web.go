@@ -122,7 +122,7 @@ type SerializableRequest struct {
 	Body   []byte
 }
 
-func convertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request, error) {
+func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request, error) {
 	// Build the URL
 	url := apiReq.Path
 	if len(apiReq.Query) > 0 {
@@ -156,8 +156,7 @@ func convertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request
 	return req, nil
 }
 
-// Manually invoke an HTTP handler
-func invokeHandler(handler http.Handler, httpReq *http.Request) ApiResponse {
+func ManualInvokeHandler(handler http.Handler, httpReq *http.Request) ApiResponse {
 	customWriter := &ResponseWriter{}
 	handler.ServeHTTP(customWriter, httpReq)
 	return customWriter.End()

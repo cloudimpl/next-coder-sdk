@@ -239,12 +239,12 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent, err
 	}
 
 	newCtx := context.WithValue(ctx, "polycode.context", apiCtx)
-	httpReq, err := convertToHttpRequest(newCtx, event.Request)
+	httpReq, err := ConvertToHttpRequest(newCtx, event.Request)
 	if err != nil {
 		return ApiCompleteEvent{}, err
 	}
 
-	res := invokeHandler(httpHandler, httpReq)
+	res := ManualInvokeHandler(httpHandler, httpReq)
 	println("client: api completed")
 	return ApiCompleteEvent{
 		Response: res,

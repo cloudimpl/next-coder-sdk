@@ -10,6 +10,7 @@ var ErrPanic = DefineError("polycode.client", 5, "task in progress")
 var ErrTaskInProgress = &ErrPanic
 var ErrContextNotFound = DefineError("polycode.client", 6, "context not found")
 var ErrInternal = DefineError("polycode.client", 7, "internal error")
+var ErrTaskNotFound = DefineError("polycode.client", 8, "task not found")
 
 type Error struct {
 	Module   string
