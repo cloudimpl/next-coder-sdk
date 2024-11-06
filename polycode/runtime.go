@@ -34,17 +34,21 @@ func RegisterService(service Service) {
 	serviceMap[service.GetName()] = service
 }
 
-func RegisterApi(engine *gin.Engine) {
-	log.Println("client: register api")
-
-	if httpHandler != nil {
-		panic("client: api already registered")
+func StartApp(args ...any) {
+	if len(args) > 1 {
+		panic(errors.New("client: invalid start app arguments"))
 	}
 
-	httpHandler = engine
-}
+	if len(args) > 0 {
+		g, ok := args[0].(*gin.Engine)
+		if !ok {
+			panic(errors.New("client: invalid start app arguments"))
+		}
 
-func StartApp() {
+		log.Println("client: register api")
+		httpHandler = g
+	}
+
 	if len(os.Args) > 1 {
 		log.Println("client: run cli command")
 		err := runCliCommand(os.Args[1:])
