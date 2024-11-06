@@ -48,6 +48,7 @@ type ApiStartEvent struct {
 }
 
 type ApiCompleteEvent struct {
+	Path     string      `json:"path"`
 	Response ApiResponse `json:"response"`
 }
 
