@@ -79,9 +79,10 @@ type RemoteController struct {
 	serviceClient *ServiceClient
 }
 
-func (r RemoteController) RequestReply(options TaskOptions, apiReq ApiRequest) (ApiResponse, error) {
+func (r RemoteController) RequestReply(options TaskOptions, path string, apiReq ApiRequest) (ApiResponse, error) {
 	req := ExecApiRequest{
 		Controller: r.controller,
+		Path:       path,
 		Options:    options,
 		Request:    apiReq,
 	}

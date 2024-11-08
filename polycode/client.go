@@ -43,6 +43,7 @@ type ExecServiceResponse struct {
 
 type ExecApiRequest struct {
 	Controller string      `json:"controller"`
+	Path       string      `json:"path"`
 	Options    TaskOptions `json:"options"`
 	Request    ApiRequest  `json:"request"`
 }
