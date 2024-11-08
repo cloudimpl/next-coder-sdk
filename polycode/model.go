@@ -90,6 +90,7 @@ type TaskData struct {
 }
 
 type ClientEnv struct {
+	EnvId   string `json:"envId"`
 	AppName string `json:"appName"`
 	AppPort uint   `json:"appPort"`
 }

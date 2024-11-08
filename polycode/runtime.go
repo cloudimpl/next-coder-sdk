@@ -155,19 +155,19 @@ func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceComple
 	service, err := getService(event.Service)
 	if err != nil {
 		fmt.Printf("client: task error %s\n", err.Error())
-		return ServiceCompleteEvent{}, err
+		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err)), nil
 	}
 
 	inputObj, err := service.GetInputType(event.Method)
 	if err != nil {
 		fmt.Printf("client: task error %s\n", err.Error())
-		return ServiceCompleteEvent{}, err
+		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err)), nil
 	}
 
 	err = ConvertType(event.Input, inputObj)
 	if err != nil {
 		fmt.Printf("client: task error %s\n", err.Error())
-		return ServiceCompleteEvent{}, err
+		return ErrorToServiceComplete(ErrBadRequest.Wrap(err)), nil
 	}
 
 	var ret any
@@ -197,7 +197,7 @@ func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceComple
 
 	if err != nil {
 		fmt.Printf("client: task completed with error %s\n", err.Error())
-		return ErrorToServiceComplete(err), nil
+		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err)), nil
 	}
 
 	println("client: task completed")
@@ -215,7 +215,7 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent, err
 				log.Println("client: api in progress")
 				evt = ApiCompleteEvent{
 					Response: ApiResponse{
-						StatusCode:      200,
+						StatusCode:      202,
 						Header:          make(map[string]string),
 						Body:            "",
 						IsBase64Encoded: false,
@@ -232,7 +232,7 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent, err
 
 	if httpHandler == nil {
 		println("client: api error, not registered")
-		return ApiCompleteEvent{}, fmt.Errorf("api not registered")
+		return ErrorToApiComplete(ErrApiExecError.Wrap(fmt.Errorf("api not registered"))), nil
 	}
 
 	apiCtx := ApiContext{
@@ -245,7 +245,8 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent, err
 	newCtx := context.WithValue(ctx, "polycode.context", apiCtx)
 	httpReq, err := ConvertToHttpRequest(newCtx, event.Request)
 	if err != nil {
-		return ApiCompleteEvent{}, err
+		println("client: api error, bad request")
+		return ErrorToApiComplete(ErrApiExecError.Wrap(err)), nil
 	}
 
 	res := ManualInvokeHandler(httpHandler, httpReq)
@@ -263,10 +264,21 @@ func ValueToServiceComplete(output any) ServiceCompleteEvent {
 	}
 }
 
-func ErrorToServiceComplete(err error) ServiceCompleteEvent {
+func ErrorToServiceComplete(err Error) ServiceCompleteEvent {
 	return ServiceCompleteEvent{
 		Output:  nil,
 		IsError: true,
-		Error:   ErrTaskExecError.Wrap(err),
+		Error:   err,
+	}
+}
+
+func ErrorToApiComplete(err Error) ApiCompleteEvent {
+	return ApiCompleteEvent{
+		Response: ApiResponse{
+			StatusCode:      500,
+			Header:          make(map[string]string),
+			Body:            err.ToJson(),
+			IsBase64Encoded: false,
+		},
 	}
 }
