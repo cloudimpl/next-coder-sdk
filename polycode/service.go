@@ -71,3 +71,29 @@ func (r RemoteService) RequestReply(options TaskOptions, method string, input an
 func (r RemoteService) Send(options TaskOptions, method string, input any) error {
 	panic("implement me")
 }
+
+type RemoteController struct {
+	ctx           context.Context
+	sessionId     string
+	controller    string
+	serviceClient *ServiceClient
+}
+
+func (r RemoteController) RequestReply(options TaskOptions, apiReq ApiRequest) (ApiResponse, error) {
+	req := ExecApiRequest{
+		Controller: r.controller,
+		Options:    options,
+		Request:    apiReq,
+	}
+
+	output, err := r.serviceClient.ExecApi(r.sessionId, req)
+	if err != nil {
+		return ApiResponse{}, err
+	}
+
+	if output.IsError {
+		return ApiResponse{}, output.Error
+	}
+
+	return output.Response, nil
+}

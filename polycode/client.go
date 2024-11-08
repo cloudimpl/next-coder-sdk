@@ -41,6 +41,19 @@ type ExecServiceResponse struct {
 	Error   Error `json:"error"`
 }
 
+type ExecApiRequest struct {
+	Controller string      `json:"controller"`
+	Options    TaskOptions `json:"options"`
+	Request    ApiRequest  `json:"request"`
+}
+
+type ExecApiResponse struct {
+	IsAsync  bool        `json:"isAsync"`
+	Response ApiResponse `json:"response"`
+	IsError  bool        `json:"isError"`
+	Error    Error       `json:"error"`
+}
+
 // PutRequest represents the JSON structure for put operations
 type PutRequest struct {
 	Action     string                 `json:"action"`
@@ -101,6 +114,19 @@ func (sc *ServiceClient) ExecService(sessionId string, req ExecServiceRequest) (
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/service/exec", req, &res)
 	if err != nil {
 		return ExecServiceResponse{}, err
+	}
+
+	if res.IsAsync {
+		panic(ErrTaskInProgress)
+	}
+	return res, nil
+}
+
+func (sc *ServiceClient) ExecApi(sessionId string, req ExecApiRequest) (ExecApiResponse, error) {
+	var res ExecApiResponse
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/api/exec", req, &res)
+	if err != nil {
+		return ExecApiResponse{}, err
 	}
 
 	if res.IsAsync {

@@ -107,3 +107,7 @@ func (wc ApiContext) Value(key any) any {
 func (wc ApiContext) Service(service string) (RemoteService, error) {
 	return RemoteService{ctx: wc.ctx, sessionId: wc.sessionId, service: service, serviceClient: wc.serviceClient}, nil
 }
+
+func (wc ApiContext) Controller(controller string) (RemoteController, error) {
+	return RemoteController{ctx: wc.ctx, sessionId: wc.sessionId, controller: controller, serviceClient: wc.serviceClient}, nil
+}
