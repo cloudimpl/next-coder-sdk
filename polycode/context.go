@@ -6,24 +6,28 @@ import (
 )
 
 type ServiceContext interface {
+	context.Context
 	AppConfig() AppConfig
 	Db() DataStore
 	FileStore() FileStore
 }
 
 type WorkflowContext interface {
+	context.Context
 	AppConfig() AppConfig
 	Service(service string) (RemoteService, error)
 	Controller(controller string) (RemoteController, error)
 }
 
 type ApiContext interface {
+	context.Context
 	AppConfig() AppConfig
 	Service(service string) (RemoteService, error)
 	Controller(controller string) (RemoteController, error)
 }
 
 type RawContext interface {
+	context.Context
 	ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error)
 	ApiExec(req ExecApiExtendedRequest) (ExecApiResponse, error)
 	DbGet(req QueryExtendedRequest) (map[string]interface{}, error)

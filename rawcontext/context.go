@@ -1,4 +1,4 @@
-package apicontext
+package rawcontext
 
 import (
 	"context"
@@ -6,10 +6,15 @@ import (
 )
 
 func FromContext(ctx context.Context) (polycode.RawContext, error) {
-	rawContext, ok := ctx.(polycode.RawContext)
-	if !ok {
+	ctxImpl, ok := ctx.(polycode.ContextImpl)
+	if ok {
+		return ctxImpl, nil
+	}
+
+	value := ctx.Value("polycode.context")
+	if value == nil {
 		return nil, polycode.ErrContextNotFound
 	}
 
-	return rawContext, nil
+	return value.(polycode.ContextImpl), nil
 }
