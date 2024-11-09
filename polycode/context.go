@@ -5,109 +5,93 @@ import (
 	"time"
 )
 
-type ServiceContext struct {
-	ctx       context.Context
-	sessionId string
-	dataStore DataStore
-	fileStore FileStore
-	option    TaskOptions
-	config    AppConfig
+type ServiceContext interface {
+	AppConfig() AppConfig
+	Db() DataStore
+	FileStore() FileStore
 }
 
-func (s ServiceContext) AppConfig() AppConfig {
+type WorkflowContext interface {
+	AppConfig() AppConfig
+	Service(service string) (RemoteService, error)
+	Controller(controller string) (RemoteController, error)
+}
+
+type ApiContext interface {
+	AppConfig() AppConfig
+	Service(service string) (RemoteService, error)
+	Controller(controller string) (RemoteController, error)
+}
+
+type RawContext interface {
+	ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error)
+	ApiExec(req ExecApiExtendedRequest) (ExecApiResponse, error)
+	DbGet(req QueryExtendedRequest) (map[string]interface{}, error)
+	DbQuery(req QueryExtendedRequest) ([]map[string]interface{}, error)
+	FileGet(req GetFileExtendedRequest) (GetFileResponse, error)
+}
+
+type ContextImpl struct {
+	ctx           context.Context
+	sessionId     string
+	dataStore     DataStore
+	fileStore     FileStore
+	config        AppConfig
+	serviceClient *ServiceClient
+}
+
+func (s ContextImpl) AppConfig() AppConfig {
 	return s.config
 }
 
-func (s ServiceContext) Option() TaskOptions {
-	return s.option
-}
-
-func (s ServiceContext) Deadline() (deadline time.Time, ok bool) {
+func (s ContextImpl) Deadline() (deadline time.Time, ok bool) {
 	return s.ctx.Deadline()
 }
 
-func (s ServiceContext) Done() <-chan struct{} {
+func (s ContextImpl) Done() <-chan struct{} {
 	return s.ctx.Done()
 }
 
-func (s ServiceContext) Err() error {
+func (s ContextImpl) Err() error {
 	return s.ctx.Err()
 }
 
-func (s ServiceContext) Value(key any) any {
+func (s ContextImpl) Value(key any) any {
 	return s.ctx.Value(key)
 }
 
-func (s ServiceContext) Db() DataStore {
+func (s ContextImpl) Db() DataStore {
 	return s.dataStore
 }
 
-func (s ServiceContext) FileStore() FileStore {
+func (s ContextImpl) FileStore() FileStore {
 	return s.fileStore
 }
 
-type WorkflowContext struct {
-	ctx           context.Context
-	sessionId     string
-	serviceClient *ServiceClient
-	config        AppConfig
+func (s ContextImpl) Service(service string) (RemoteService, error) {
+	return RemoteService{ctx: s.ctx, sessionId: s.sessionId, service: service, serviceClient: s.serviceClient}, nil
 }
 
-func (wc WorkflowContext) AppConfig() AppConfig {
-	return wc.config
+func (s ContextImpl) Controller(controller string) (RemoteController, error) {
+	return RemoteController{ctx: s.ctx, sessionId: s.sessionId, controller: controller, serviceClient: s.serviceClient}, nil
 }
 
-func (wc WorkflowContext) Deadline() (deadline time.Time, ok bool) {
-	return wc.ctx.Deadline()
+func (s ContextImpl) ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error) {
+	return s.serviceClient.ExecServiceExtended(s.sessionId, req)
 }
 
-func (wc WorkflowContext) Done() <-chan struct{} {
-	return wc.ctx.Done()
+func (s ContextImpl) ApiExec(req ExecApiExtendedRequest) (ExecApiResponse, error) {
+	return s.serviceClient.ExecApiExtended(s.sessionId, req)
 }
 
-func (wc WorkflowContext) Err() error {
-	return wc.ctx.Err()
+func (s ContextImpl) DbGet(req QueryExtendedRequest) (map[string]interface{}, error) {
+	return s.serviceClient.GetItemExtended(s.sessionId, req)
 }
 
-func (wc WorkflowContext) Value(key any) any {
-	return wc.ctx.Value(key)
+func (s ContextImpl) DbQuery(req QueryExtendedRequest) ([]map[string]interface{}, error) {
+	return s.serviceClient.QueryItemsExtended(s.sessionId, req)
 }
 
-func (wc WorkflowContext) Service(service string) (RemoteService, error) {
-	return RemoteService{ctx: wc.ctx, sessionId: wc.sessionId, service: service, serviceClient: wc.serviceClient}, nil
-}
-
-type ApiContext struct {
-	ctx           context.Context
-	sessionId     string
-	serviceClient *ServiceClient
-	config        AppConfig
-}
-
-func (wc ApiContext) AppConfig() AppConfig {
-	return wc.config
-}
-
-func (wc ApiContext) Deadline() (deadline time.Time, ok bool) {
-	return wc.ctx.Deadline()
-}
-
-func (wc ApiContext) Done() <-chan struct{} {
-	return wc.ctx.Done()
-}
-
-func (wc ApiContext) Err() error {
-	return wc.ctx.Err()
-}
-
-func (wc ApiContext) Value(key any) any {
-	return wc.ctx.Value(key)
-}
-
-func (wc ApiContext) Service(service string) (RemoteService, error) {
-	return RemoteService{ctx: wc.ctx, sessionId: wc.sessionId, service: service, serviceClient: wc.serviceClient}, nil
-}
-
-func (wc ApiContext) Controller(controller string) (RemoteController, error) {
-	return RemoteController{ctx: wc.ctx, sessionId: wc.sessionId, controller: controller, serviceClient: wc.serviceClient}, nil
+func (s ContextImpl) FileGet(req GetFileExtendedRequest) (GetFileResponse, error) {
+	return s.serviceClient.GetFileExtended(s.sessionId, req)
 }

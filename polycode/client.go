@@ -34,6 +34,11 @@ type ExecServiceRequest struct {
 	Input   any         `json:"input"`
 }
 
+type ExecServiceExtendedRequest struct {
+	EnvId              string             `json:"envId"`
+	ExecServiceRequest ExecServiceRequest `json:"execServiceRequest"`
+}
+
 type ExecServiceResponse struct {
 	IsAsync bool  `json:"isAsync"`
 	Output  any   `json:"output"`
@@ -46,6 +51,11 @@ type ExecApiRequest struct {
 	Path       string      `json:"path"`
 	Options    TaskOptions `json:"options"`
 	Request    ApiRequest  `json:"request"`
+}
+
+type ExecApiExtendedRequest struct {
+	EnvId          string         `json:"envId"`
+	ExecApiRequest ExecApiRequest `json:"execApiRequest"`
 }
 
 type ExecApiResponse struct {
@@ -72,9 +82,26 @@ type QueryRequest struct {
 	Limit      int           `json:"limit"`
 }
 
+// QueryExtendedRequest represents the JSON structure for query operations
+type QueryExtendedRequest struct {
+	EnvId        string       `json:"envId"`
+	TenantId     string       `json:"tenantId"`
+	PartitionKey string       `json:"partitionKey"`
+	ServiceName  string       `json:"serviceName"`
+	QueryRequest QueryRequest `json:"queryRequest"`
+}
+
 // GetFileRequest represents the JSON structure for get file operations
 type GetFileRequest struct {
 	Key string `json:"key"`
+}
+
+type GetFileExtendedRequest struct {
+	EnvId          string         `json:"envId"`
+	TenantId       string         `json:"tenantId"`
+	PartitionKey   string         `json:"partitionKey"`
+	ServiceName    string         `json:"serviceName"`
+	GetFileRequest GetFileRequest `json:"getFileRequest"`
 }
 
 // GetFileResponse represents the JSON structure for get file response
@@ -123,9 +150,36 @@ func (sc *ServiceClient) ExecService(sessionId string, req ExecServiceRequest) (
 	return res, nil
 }
 
+// ExecServiceExtended executes a service with the given request
+func (sc *ServiceClient) ExecServiceExtended(sessionId string, req ExecServiceExtendedRequest) (ExecServiceResponse, error) {
+	var res ExecServiceResponse
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/service/exec", req, &res)
+	if err != nil {
+		return ExecServiceResponse{}, err
+	}
+
+	if res.IsAsync {
+		panic(ErrTaskInProgress)
+	}
+	return res, nil
+}
+
 func (sc *ServiceClient) ExecApi(sessionId string, req ExecApiRequest) (ExecApiResponse, error) {
 	var res ExecApiResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/api/exec", req, &res)
+	if err != nil {
+		return ExecApiResponse{}, err
+	}
+
+	if res.IsAsync {
+		panic(ErrTaskInProgress)
+	}
+	return res, nil
+}
+
+func (sc *ServiceClient) ExecApiExtended(sessionId string, req ExecApiExtendedRequest) (ExecApiResponse, error) {
+	var res ExecApiResponse
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/api/exec", req, &res)
 	if err != nil {
 		return ExecApiResponse{}, err
 	}
@@ -146,10 +200,30 @@ func (sc *ServiceClient) GetItem(sessionId string, req QueryRequest) (map[string
 	return res, nil
 }
 
+// GetItemExtended gets an item from the database
+func (sc *ServiceClient) GetItemExtended(sessionId string, req QueryExtendedRequest) (map[string]interface{}, error) {
+	var res map[string]interface{}
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/get", req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 // QueryItems queries items from the database
 func (sc *ServiceClient) QueryItems(sessionId string, req QueryRequest) ([]map[string]interface{}, error) {
 	var res []map[string]interface{}
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/query", req, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// QueryItemsExtended queries items from the database
+func (sc *ServiceClient) QueryItemsExtended(sessionId string, req QueryExtendedRequest) ([]map[string]interface{}, error) {
+	var res []map[string]interface{}
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/query", req, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -165,6 +239,16 @@ func (sc *ServiceClient) PutItem(sessionId string, req PutRequest) error {
 func (sc *ServiceClient) GetFile(sessionId string, req GetFileRequest) (GetFileResponse, error) {
 	var res GetFileResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/get", req, &res)
+	if err != nil {
+		return GetFileResponse{}, err
+	}
+	return res, nil
+}
+
+// GetFileExtended gets a file from the file store
+func (sc *ServiceClient) GetFileExtended(sessionId string, req GetFileExtendedRequest) (GetFileResponse, error) {
+	var res GetFileResponse
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/file/get", req, &res)
 	if err != nil {
 		return GetFileResponse{}, err
 	}

@@ -8,7 +8,7 @@ import (
 func FromContext(ctx context.Context) (polycode.ApiContext, error) {
 	value := ctx.Value("polycode.context")
 	if value == nil {
-		return polycode.ApiContext{}, polycode.ErrContextNotFound
+		return nil, polycode.ErrContextNotFound
 	}
 
 	return value.(polycode.ApiContext), nil

@@ -170,29 +170,24 @@ func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceComple
 		return ErrorToServiceComplete(ErrBadRequest.Wrap(err)), nil
 	}
 
+	ctxImpl := &ContextImpl{
+		ctx:           ctx,
+		sessionId:     event.SessionId,
+		dataStore:     NewDatabase(serviceClient, event.SessionId),
+		fileStore:     NewFileStore(serviceClient, event.SessionId),
+		config:        appConfig,
+		serviceClient: serviceClient,
+	}
+
 	var ret any
 	if service.IsWorkflow(event.Method) {
-		workflowCtx := WorkflowContext{
-			ctx:           ctx,
-			sessionId:     event.SessionId,
-			serviceClient: serviceClient,
-			config:        appConfig,
-		}
-
 		println(fmt.Sprintf("client: service %s exec workflow %s with session id %s", event.Service,
 			event.Method, event.SessionId))
-		ret, err = service.ExecuteWorkflow(workflowCtx, event.Method, inputObj)
+		ret, err = service.ExecuteWorkflow(ctxImpl, event.Method, inputObj)
 	} else {
-		srvCtx := ServiceContext{
-			ctx:       ctx,
-			sessionId: event.SessionId,
-			dataStore: NewDatabase(serviceClient, event.SessionId),
-			config:    appConfig,
-		}
-
 		println(fmt.Sprintf("client: service %s exec handler %s with session id %s", event.Service,
 			event.Method, event.SessionId))
-		ret, err = service.ExecuteService(srvCtx, event.Method, inputObj)
+		ret, err = service.ExecuteService(ctxImpl, event.Method, inputObj)
 	}
 
 	if err != nil {
@@ -235,14 +230,16 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent, err
 		return ErrorToApiComplete(ErrApiExecError.Wrap(fmt.Errorf("api not registered"))), nil
 	}
 
-	apiCtx := ApiContext{
+	ctxImpl := &ContextImpl{
 		ctx:           ctx,
 		sessionId:     event.SessionId,
-		serviceClient: serviceClient,
+		dataStore:     NewDatabase(serviceClient, event.SessionId),
+		fileStore:     NewFileStore(serviceClient, event.SessionId),
 		config:        appConfig,
+		serviceClient: serviceClient,
 	}
 
-	newCtx := context.WithValue(ctx, "polycode.context", apiCtx)
+	newCtx := context.WithValue(ctx, "polycode.context", ctxImpl)
 	httpReq, err := ConvertToHttpRequest(newCtx, event.Request)
 	if err != nil {
 		println("client: api error, bad request")
