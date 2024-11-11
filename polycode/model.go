@@ -5,18 +5,18 @@ import (
 )
 
 type BackoffStrategy struct {
-	InitialInterval time.Duration // Initial retry interval
-	MaxInterval     time.Duration // Maximum interval between retries
-	Multiplier      float64       // Multiplier to apply to the interval after each failure
+	InitialInterval time.Duration `json:"initialInterval"`
+	MaxInterval     time.Duration `json:"maxInterval"`
+	Multiplier      float64       `json:"multiplier"`
 }
 
 type TaskOptions struct {
-	Timeout         time.Duration   // Maximum time allowed for the task to complete
-	Retries         int             // Number of times to retry the task upon failure
-	RetryOnFail     bool            // Whether to retry the task automatically on failure
-	BackoffStrategy BackoffStrategy // Backoff strategy for handling retries
-	PartitionKey    string
-	TenantId        string
+	Timeout         time.Duration   `json:"timeout"`
+	Retries         int             `json:"retries"`
+	RetryOnFail     bool            `json:"retryOnFail"`
+	BackoffStrategy BackoffStrategy `json:"backoffStrategy"`
+	PartitionKey    string          `json:"partitionKey"`
+	TenantId        string          `json:"tenantId"`
 }
 
 func (t TaskOptions) WithPartitionKey(partitionKey string) TaskOptions {
