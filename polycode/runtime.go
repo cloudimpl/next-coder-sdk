@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"runtime/debug"
+	"time"
 )
 
 var serviceClient = NewServiceClient("http://127.0.0.1:9999")
@@ -112,9 +113,13 @@ func sendStartApp() {
 		Routes:   loadRoutes(),
 	}
 
-	err := serviceClient.StartApp(req)
-	if err != nil {
-		panic(err)
+	var err error
+	for {
+		err = serviceClient.StartApp(req)
+		if err == nil {
+			break
+		}
+		time.Sleep(5 * time.Millisecond)
 	}
 }
 
