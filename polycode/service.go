@@ -35,19 +35,53 @@ func (r Response) GetAny() (any, error) {
 	}
 }
 
+type RemoteServiceBuilder struct {
+	ctx           context.Context
+	sessionId     string
+	service       string
+	serviceClient *ServiceClient
+	tenantId      string
+	partitionKey  string
+}
+
+func (r *RemoteServiceBuilder) WithTenantId(tenantId string) *RemoteServiceBuilder {
+	r.tenantId = tenantId
+	return r
+}
+
+func (r *RemoteServiceBuilder) WithPartitionKey(partitionKey string) *RemoteServiceBuilder {
+	r.partitionKey = partitionKey
+	return r
+}
+
+func (r *RemoteServiceBuilder) Get() RemoteService {
+	return RemoteService{
+		ctx:           r.ctx,
+		sessionId:     r.sessionId,
+		service:       r.service,
+		serviceClient: r.serviceClient,
+		tenantId:      r.tenantId,
+		partitionKey:  r.partitionKey,
+	}
+}
+
 type RemoteService struct {
 	ctx           context.Context
 	sessionId     string
 	service       string
 	serviceClient *ServiceClient
+	tenantId      string
+	partitionKey  string
 }
 
 func (r RemoteService) RequestReply(options TaskOptions, method string, input any) Response {
 	req := ExecServiceRequest{
-		Service: r.service,
-		Method:  method,
-		Options: options,
-		Input:   input,
+		Service:      r.service,
+		TenantId:     r.tenantId,
+		PartitionKey: r.partitionKey,
+		Method:       method,
+		Options:      options,
+		Input:        input,
 	}
 
 	output, err := r.serviceClient.ExecService(r.sessionId, req)

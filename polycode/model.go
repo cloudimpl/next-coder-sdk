@@ -15,13 +15,6 @@ type TaskOptions struct {
 	Retries         int             `json:"retries"`
 	RetryOnFail     bool            `json:"retryOnFail"`
 	BackoffStrategy BackoffStrategy `json:"backoffStrategy"`
-	PartitionKey    string          `json:"partitionKey"`
-	TenantId        string          `json:"tenantId"`
-}
-
-func (t TaskOptions) WithPartitionKey(partitionKey string) TaskOptions {
-	t.PartitionKey = partitionKey
-	return t
 }
 
 func (t TaskOptions) WithTimeout(timeout time.Duration) TaskOptions {

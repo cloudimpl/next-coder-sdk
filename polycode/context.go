@@ -15,15 +15,15 @@ type ServiceContext interface {
 type WorkflowContext interface {
 	context.Context
 	AppConfig() AppConfig
-	Service(service string) (RemoteService, error)
-	Controller(controller string) (RemoteController, error)
+	Service(service string) *RemoteServiceBuilder
+	Controller(controller string) RemoteController
 }
 
 type ApiContext interface {
 	context.Context
 	AppConfig() AppConfig
-	Service(service string) (RemoteService, error)
-	Controller(controller string) (RemoteController, error)
+	Service(service string) *RemoteServiceBuilder
+	Controller(controller string) RemoteController
 }
 
 type RawContext interface {
@@ -72,12 +72,14 @@ func (s ContextImpl) FileStore() FileStore {
 	return s.fileStore
 }
 
-func (s ContextImpl) Service(service string) (RemoteService, error) {
-	return RemoteService{ctx: s.ctx, sessionId: s.sessionId, service: service, serviceClient: s.serviceClient}, nil
+func (s ContextImpl) Service(service string) *RemoteServiceBuilder {
+	return &RemoteServiceBuilder{
+		ctx: s.ctx, sessionId: s.sessionId, service: service, serviceClient: s.serviceClient,
+	}
 }
 
-func (s ContextImpl) Controller(controller string) (RemoteController, error) {
-	return RemoteController{ctx: s.ctx, sessionId: s.sessionId, controller: controller, serviceClient: s.serviceClient}, nil
+func (s ContextImpl) Controller(controller string) RemoteController {
+	return RemoteController{ctx: s.ctx, sessionId: s.sessionId, controller: controller, serviceClient: s.serviceClient}
 }
 
 func (s ContextImpl) ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error) {

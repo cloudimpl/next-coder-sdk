@@ -28,10 +28,12 @@ type StartAppRequest struct {
 }
 
 type ExecServiceRequest struct {
-	Service string      `json:"service"`
-	Method  string      `json:"method"`
-	Options TaskOptions `json:"options"`
-	Input   any         `json:"input"`
+	Service      string      `json:"service"`
+	TenantId     string      `json:"tenantId"`
+	PartitionKey string      `json:"partitionKey"`
+	Method       string      `json:"method"`
+	Options      TaskOptions `json:"options"`
+	Input        any         `json:"input"`
 }
 
 type ExecServiceExtendedRequest struct {
