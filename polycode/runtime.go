@@ -136,7 +136,7 @@ func loadRoutes() []RouteData {
 	return routes
 }
 
-func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceCompleteEvent, err error) {
+func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceCompleteEvent) {
 	log.Println("client: handle task start event")
 	defer func() {
 		// Recover from panic and check for a specific error
@@ -150,7 +150,7 @@ func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceComple
 				log.Printf("client: task error %s\n", recovered.Error())
 				stackTrace := string(debug.Stack())
 				println(stackTrace)
-				err = recovered
+				evt = ErrorToServiceComplete(ErrInternal.Wrap(recovered))
 			}
 		}
 	}()
@@ -158,19 +158,25 @@ func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceComple
 	service, err := getService(event.Service)
 	if err != nil {
 		fmt.Printf("client: task error %s\n", err.Error())
-		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err)), nil
+		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err))
 	}
 
 	inputObj, err := service.GetInputType(event.Method)
 	if err != nil {
 		fmt.Printf("client: task error %s\n", err.Error())
-		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err)), nil
+		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err))
 	}
 
 	err = ConvertType(event.Input, inputObj)
 	if err != nil {
 		fmt.Printf("client: task error %s\n", err.Error())
-		return ErrorToServiceComplete(ErrBadRequest.Wrap(err)), nil
+		return ErrorToServiceComplete(ErrBadRequest.Wrap(err))
+	}
+
+	err = currentValidator.Validate(inputObj)
+	if err != nil {
+		fmt.Printf("client: validation error %s\n", err.Error())
+		return ErrorToServiceComplete(ErrBadRequest.Wrap(err))
 	}
 
 	ctxImpl := &ContextImpl{
@@ -195,14 +201,14 @@ func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceComple
 
 	if err != nil {
 		fmt.Printf("client: task completed with error %s\n", err.Error())
-		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err)), nil
+		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err))
 	}
 
 	println("client: task completed")
-	return ValueToServiceComplete(ret), nil
+	return ValueToServiceComplete(ret)
 }
 
-func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent, err error) {
+func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent) {
 	log.Println("client: handle http request")
 	defer func() {
 		// Recover from panic and check for a specific error
@@ -223,14 +229,21 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent, err
 				log.Printf("client: api error %s\n", recovered.Error())
 				stackTrace := string(debug.Stack())
 				println(stackTrace)
-				err = recovered
+				evt = ApiCompleteEvent{
+					Response: ApiResponse{
+						StatusCode:      500,
+						Header:          make(map[string]string),
+						Body:            ErrInternal.Wrap(recovered).ToJson(),
+						IsBase64Encoded: false,
+					},
+				}
 			}
 		}
 	}()
 
 	if httpHandler == nil {
 		println("client: api error, not registered")
-		return ErrorToApiComplete(ErrApiExecError.Wrap(fmt.Errorf("api not registered"))), nil
+		return ErrorToApiComplete(ErrApiExecError.Wrap(fmt.Errorf("api not registered")))
 	}
 
 	ctxImpl := &ContextImpl{
@@ -246,14 +259,14 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent, err
 	httpReq, err := ConvertToHttpRequest(newCtx, event.Request)
 	if err != nil {
 		println("client: api error, bad request")
-		return ErrorToApiComplete(ErrApiExecError.Wrap(err)), nil
+		return ErrorToApiComplete(ErrApiExecError.Wrap(err))
 	}
 
 	res := ManualInvokeHandler(httpHandler, httpReq)
 	println("client: api completed")
 	return ApiCompleteEvent{
 		Response: res,
-	}, nil
+	}
 }
 
 func ValueToServiceComplete(output any) ServiceCompleteEvent {
