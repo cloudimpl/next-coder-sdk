@@ -38,18 +38,9 @@ func invokeApiHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, errorOutput)
 		log.Println("client: api request error")
 	} else {
-		output, err := runApi(c, input)
-		if err != nil {
-			errorOutput := ErrorEvent{
-				Error: ErrInternal.Wrap(err),
-			}
-
-			c.JSON(http.StatusInternalServerError, errorOutput)
-			log.Println("client: api request error")
-		} else {
-			c.JSON(http.StatusOK, output)
-			log.Println("client: api request completed")
-		}
+		output := runApi(c, input)
+		c.JSON(http.StatusOK, output)
+		log.Println("client: api request completed")
 	}
 }
 
@@ -64,17 +55,8 @@ func invokeServiceHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, errorOutput)
 		log.Println("client: service request error")
 	} else {
-		output, err := runService(c, input)
-		if err != nil {
-			errorOutput := ErrorEvent{
-				Error: ErrInternal.Wrap(err),
-			}
-
-			c.JSON(http.StatusInternalServerError, errorOutput)
-			log.Println("client: service request error")
-		} else {
-			c.JSON(http.StatusOK, output)
-			log.Println("client: service request completed")
-		}
+		output := runService(c, input)
+		c.JSON(http.StatusOK, output)
+		log.Println("client: service request completed")
 	}
 }
