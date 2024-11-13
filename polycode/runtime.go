@@ -137,19 +137,24 @@ func loadRoutes() []RouteData {
 }
 
 func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceCompleteEvent) {
-	log.Println("client: handle task start event")
+	logAggregator := CreateLogAggregator()
+	taskLogger := GetLogger("task", logAggregator)
+
+	taskLogger.Info().Msg(fmt.Sprintf("service started %s.%s", event.Service, event.Method))
+
 	defer func() {
 		// Recover from panic and check for a specific error
 		if r := recover(); r != nil {
 			recovered, ok := r.(error)
 
 			if ok && errors.Is(recovered, ErrTaskInProgress) {
-				log.Println("client: task in progress")
+				taskLogger.Info().Msg("service stopped")
 				evt = ValueToServiceComplete(nil)
 			} else {
-				log.Printf("client: task error %s\n", recovered.Error())
+				err2 := ErrInternal.Wrap(recovered)
 				stackTrace := string(debug.Stack())
-				println(stackTrace)
+				taskLogger.Error().Msg(err2.Error())
+				taskLogger.Error().Msg(fmt.Sprintf("stack trace %s", stackTrace))
 				evt = ErrorToServiceComplete(ErrInternal.Wrap(recovered))
 			}
 		}
@@ -157,26 +162,30 @@ func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceComple
 
 	service, err := getService(event.Service)
 	if err != nil {
-		fmt.Printf("client: task error %s\n", err.Error())
-		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err))
+		err2 := ErrServiceExecError.Wrap(err)
+		taskLogger.Error().Msg(err2.Error())
+		return ErrorToServiceComplete(err2)
 	}
 
 	inputObj, err := service.GetInputType(event.Method)
 	if err != nil {
-		fmt.Printf("client: task error %s\n", err.Error())
-		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err))
+		err2 := ErrServiceExecError.Wrap(err)
+		taskLogger.Error().Msg(err2.Error())
+		return ErrorToServiceComplete(err2)
 	}
 
 	err = ConvertType(event.Input, inputObj)
 	if err != nil {
-		fmt.Printf("client: task error %s\n", err.Error())
-		return ErrorToServiceComplete(ErrBadRequest.Wrap(err))
+		err2 := ErrBadRequest.Wrap(err)
+		taskLogger.Error().Msg(err2.Error())
+		return ErrorToServiceComplete(err2)
 	}
 
 	err = currentValidator.Validate(inputObj)
 	if err != nil {
-		fmt.Printf("client: validation error %s\n", err.Error())
-		return ErrorToServiceComplete(ErrBadRequest.Wrap(err))
+		err2 := ErrBadRequest.Wrap(err)
+		taskLogger.Error().Msg(err2.Error())
+		return ErrorToServiceComplete(err2)
 	}
 
 	ctxImpl := &ContextImpl{
@@ -186,37 +195,43 @@ func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceComple
 		fileStore:     NewFileStore(serviceClient, event.SessionId),
 		config:        appConfig,
 		serviceClient: serviceClient,
+		logger:        taskLogger,
 	}
 
 	var ret any
 	if service.IsWorkflow(event.Method) {
-		println(fmt.Sprintf("client: service %s exec workflow %s with session id %s", event.Service,
+		taskLogger.Info().Msg(fmt.Sprintf("service %s exec workflow %s with session id %s", event.Service,
 			event.Method, event.SessionId))
 		ret, err = service.ExecuteWorkflow(ctxImpl, event.Method, inputObj)
 	} else {
-		println(fmt.Sprintf("client: service %s exec handler %s with session id %s", event.Service,
+		taskLogger.Info().Msg(fmt.Sprintf("service %s exec handler %s with session id %s", event.Service,
 			event.Method, event.SessionId))
 		ret, err = service.ExecuteService(ctxImpl, event.Method, inputObj)
 	}
 
 	if err != nil {
-		fmt.Printf("client: task completed with error %s\n", err.Error())
-		return ErrorToServiceComplete(ErrServiceExecError.Wrap(err))
+		err2 := ErrServiceExecError.Wrap(err)
+		taskLogger.Error().Msg(err2.Error())
+		return ErrorToServiceComplete(err2)
 	}
 
-	println("client: task completed")
+	taskLogger.Info().Msg("service completed")
 	return ValueToServiceComplete(ret)
 }
 
 func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent) {
-	log.Println("client: handle http request")
+	logAggregator := CreateLogAggregator()
+	taskLogger := GetLogger("task", logAggregator)
+
+	taskLogger.Info().Msg(fmt.Sprintf("api started %s %s", event.Request.Method, event.Request.Path))
+
 	defer func() {
 		// Recover from panic and check for a specific error
 		if r := recover(); r != nil {
 			recovered, ok := r.(error)
 
 			if ok && errors.Is(recovered, ErrTaskInProgress) {
-				log.Println("client: api in progress")
+				taskLogger.Info().Msg("api stopped")
 				evt = ApiCompleteEvent{
 					Response: ApiResponse{
 						StatusCode:      202,
@@ -226,14 +241,15 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent) {
 					},
 				}
 			} else {
-				log.Printf("client: api error %s\n", recovered.Error())
+				err2 := ErrInternal.Wrap(recovered)
 				stackTrace := string(debug.Stack())
-				println(stackTrace)
+				taskLogger.Error().Msg(err2.Error())
+				taskLogger.Error().Msg(fmt.Sprintf("stack trace %s", stackTrace))
 				evt = ApiCompleteEvent{
 					Response: ApiResponse{
 						StatusCode:      500,
 						Header:          make(map[string]string),
-						Body:            ErrInternal.Wrap(recovered).ToJson(),
+						Body:            err2.ToJson(),
 						IsBase64Encoded: false,
 					},
 				}
@@ -242,8 +258,9 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent) {
 	}()
 
 	if httpHandler == nil {
-		println("client: api error, not registered")
-		return ErrorToApiComplete(ErrApiExecError.Wrap(fmt.Errorf("api not registered")))
+		err2 := ErrApiExecError.Wrap(errors.New("http handler not set"))
+		taskLogger.Error().Msg(err2.Error())
+		return ErrorToApiComplete(err2)
 	}
 
 	ctxImpl := &ContextImpl{
@@ -253,17 +270,19 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent) {
 		fileStore:     NewFileStore(serviceClient, event.SessionId),
 		config:        appConfig,
 		serviceClient: serviceClient,
+		logger:        taskLogger,
 	}
 
 	newCtx := context.WithValue(ctx, "polycode.context", ctxImpl)
 	httpReq, err := ConvertToHttpRequest(newCtx, event.Request)
 	if err != nil {
-		println("client: api error, bad request")
-		return ErrorToApiComplete(ErrApiExecError.Wrap(err))
+		err2 := ErrApiExecError.Wrap(err)
+		taskLogger.Error().Msg(err2.Error())
+		return ErrorToApiComplete(err2)
 	}
 
 	res := ManualInvokeHandler(httpHandler, httpReq)
-	println("client: api completed")
+	taskLogger.Info().Msg("api completed")
 	return ApiCompleteEvent{
 		Response: res,
 	}

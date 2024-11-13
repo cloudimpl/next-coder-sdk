@@ -30,9 +30,10 @@ type ServiceStartEvent struct {
 }
 
 type ServiceCompleteEvent struct {
-	IsError bool  `json:"isError"`
-	Output  any   `json:"output"`
-	Error   Error `json:"error"`
+	IsError bool     `json:"isError"`
+	Output  any      `json:"output"`
+	Error   Error    `json:"error"`
+	Logs    []LogMsg `json:"logs"`
 }
 
 type ApiStartEvent struct {
@@ -43,10 +44,11 @@ type ApiStartEvent struct {
 type ApiCompleteEvent struct {
 	Path     string      `json:"path"`
 	Response ApiResponse `json:"response"`
+	Logs     []LogMsg    `json:"logs"`
 }
 
 type ErrorEvent struct {
-	Error Error
+	Error Error `json:"error"`
 }
 
 type ApiRequest struct {
