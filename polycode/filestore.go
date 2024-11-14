@@ -2,6 +2,7 @@ package polycode
 
 import (
 	"encoding/base64"
+	"fmt"
 )
 
 type FileStore struct {
@@ -30,12 +31,14 @@ func (f Folder) Load(name string) ([]byte, error) {
 
 	res, err := f.client.GetFile(f.sessionId, req)
 	if err != nil {
+		fmt.Printf("failed to get file: %s\n", err.Error())
 		return nil, err
 	}
 
 	// Decode the base64 data
 	data, err := base64.StdEncoding.DecodeString(res.Content)
 	if err != nil {
+		fmt.Printf("failed to decode base64: %s\n", err.Error())
 		return nil, err
 	}
 
@@ -52,6 +55,7 @@ func (f Folder) Save(name string, data []byte) error {
 
 	err := f.client.PutFile(f.sessionId, req)
 	if err != nil {
+		fmt.Printf("failed to put file: %s\n", err.Error())
 		return err
 	}
 

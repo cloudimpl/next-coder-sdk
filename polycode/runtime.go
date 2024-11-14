@@ -136,10 +136,7 @@ func loadRoutes() []RouteData {
 	return routes
 }
 
-func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceCompleteEvent) {
-	logAggregator := CreateLogAggregator()
-	taskLogger := GetLogger("task", logAggregator)
-
+func runService(ctx context.Context, taskLogger *Logger, event ServiceStartEvent) (evt ServiceCompleteEvent) {
 	taskLogger.Info().Msg(fmt.Sprintf("service started %s.%s", event.Service, event.Method))
 
 	defer func() {
@@ -147,7 +144,7 @@ func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceComple
 		if r := recover(); r != nil {
 			recovered, ok := r.(error)
 
-			if ok && errors.Is(recovered, ErrTaskInProgress) {
+			if ok && errors.Is(recovered, ErrTaskStopped) {
 				taskLogger.Info().Msg("service stopped")
 				evt = ValueToServiceComplete(nil)
 			} else {
@@ -219,10 +216,7 @@ func runService(ctx context.Context, event ServiceStartEvent) (evt ServiceComple
 	return ValueToServiceComplete(ret)
 }
 
-func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent) {
-	logAggregator := CreateLogAggregator()
-	taskLogger := GetLogger("task", logAggregator)
-
+func runApi(ctx context.Context, taskLogger *Logger, event ApiStartEvent) (evt ApiCompleteEvent) {
 	taskLogger.Info().Msg(fmt.Sprintf("api started %s %s", event.Request.Method, event.Request.Path))
 
 	defer func() {
@@ -230,7 +224,7 @@ func runApi(ctx context.Context, event ApiStartEvent) (evt ApiCompleteEvent) {
 		if r := recover(); r != nil {
 			recovered, ok := r.(error)
 
-			if ok && errors.Is(recovered, ErrTaskInProgress) {
+			if ok && errors.Is(recovered, ErrTaskStopped) {
 				taskLogger.Info().Msg("api stopped")
 				evt = ApiCompleteEvent{
 					Response: ApiResponse{

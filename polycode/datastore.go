@@ -1,7 +1,6 @@
 package polycode
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 )
@@ -28,18 +27,15 @@ type Collection struct {
 func (c Collection) InsertOne(item interface{}) error {
 	id, err := GetId(item)
 	if err != nil {
+		fmt.Printf("failed to get id: %s\n", err.Error())
 		return err
 	}
 
-	b, err := json.Marshal(item)
-	if err != nil {
-		return fmt.Errorf("failed to marshal JSON: %w", err)
-	}
-
 	var mapItems map[string]interface{}
-	err = json.Unmarshal(b, &mapItems)
+	err = ConvertType(item, &mapItems)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %w", err)
+		fmt.Printf("failed to convert type: %s\n", err.Error())
+		return err
 	}
 
 	req := PutRequest{
@@ -51,6 +47,7 @@ func (c Collection) InsertOne(item interface{}) error {
 
 	err = c.client.PutItem(c.sessionId, req)
 	if err != nil {
+		fmt.Printf("failed to put item: %s\n", err.Error())
 		return err
 	}
 
@@ -60,18 +57,15 @@ func (c Collection) InsertOne(item interface{}) error {
 func (c Collection) UpdateOne(item interface{}) error {
 	id, err := GetId(item)
 	if err != nil {
+		fmt.Printf("failed to get id: %s\n", err.Error())
 		return err
 	}
 
-	b, err := json.Marshal(item)
-	if err != nil {
-		return fmt.Errorf("failed to marshal JSON: %w", err)
-	}
-
 	var mapItems map[string]interface{}
-	err = json.Unmarshal(b, &mapItems)
+	err = ConvertType(item, &mapItems)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %w", err)
+		fmt.Printf("failed to convert type: %s\n", err.Error())
+		return err
 	}
 
 	req := PutRequest{
@@ -83,6 +77,7 @@ func (c Collection) UpdateOne(item interface{}) error {
 
 	err = c.client.PutItem(c.sessionId, req)
 	if err != nil {
+		fmt.Printf("failed to put item: %s\n", err.Error())
 		return err
 	}
 
@@ -98,6 +93,7 @@ func (c Collection) DeleteOne(key string) error {
 
 	err := c.client.PutItem(c.sessionId, req)
 	if err != nil {
+		fmt.Printf("failed to put item: %s\n", err.Error())
 		return err
 	}
 
@@ -114,21 +110,19 @@ func (c Collection) GetOne(key string, ret interface{}) (bool, error) {
 
 	r, err := c.client.GetItem(c.sessionId, req)
 	if err != nil {
+		fmt.Printf("failed to get item: %s\n", err.Error())
 		return false, err
 	}
 
 	if r == nil {
+		println("item not found")
 		return false, nil
 	}
 
-	b, err := json.Marshal(r)
+	err = ConvertType(r, ret)
 	if err != nil {
-		return false, fmt.Errorf("failed to marshal JSON: %w", err)
-	}
-
-	err = json.Unmarshal(b, ret)
-	if err != nil {
-		return false, fmt.Errorf("failed to unmarshal JSON: %w", err)
+		fmt.Printf("failed to convert type: %s\n", err.Error())
+		return false, err
 	}
 
 	return true, nil

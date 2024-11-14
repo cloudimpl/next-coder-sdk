@@ -26,33 +26,41 @@ func invokeHealthCheck(c *gin.Context) {
 }
 
 func invokeApiHandler(c *gin.Context) {
-	println("api task started")
+	aggregator := CreateLogAggregator()
+	taskLogger := CreateLogger("task", aggregator)
+
 	var input ApiStartEvent
+	var output ApiCompleteEvent
+
+	taskLogger.Info().Msg("api task started")
 	if err := c.ShouldBindJSON(&input); err != nil {
-		errorOutput := ErrorEvent{
-			Error: ErrInternal.Wrap(err),
-		}
-		fmt.Printf("api task failed %s", err.Error())
-		c.JSON(http.StatusInternalServerError, errorOutput)
+		output = ErrorToApiComplete(ErrInternal.Wrap(err))
+		taskLogger.Error().Msg(fmt.Sprintf("api task failed %s", err.Error()))
 	} else {
-		output := runApi(c, input)
-		println("api task success")
-		c.JSON(http.StatusOK, output)
+		output = runApi(c, taskLogger, input)
+		taskLogger.Info().Msg("api task success")
 	}
+
+	output.Logs = aggregator.messages
+	c.JSON(http.StatusOK, output)
 }
 
 func invokeServiceHandler(c *gin.Context) {
-	println("service task started")
+	aggregator := CreateLogAggregator()
+	taskLogger := CreateLogger("task", aggregator)
+
 	var input ServiceStartEvent
+	var output ServiceCompleteEvent
+
+	taskLogger.Info().Msg("service task started")
 	if err := c.ShouldBindJSON(&input); err != nil {
-		errorOutput := ErrorEvent{
-			Error: ErrInternal.Wrap(err),
-		}
-		fmt.Printf("service task failed %s", err.Error())
-		c.JSON(http.StatusInternalServerError, errorOutput)
+		output = ErrorToServiceComplete(ErrInternal.Wrap(err))
+		taskLogger.Error().Msg(fmt.Sprintf("service task failed %s", err.Error()))
 	} else {
-		output := runService(c, input)
-		println("service task success")
-		c.JSON(http.StatusOK, output)
+		output = runService(c, taskLogger, input)
+		taskLogger.Info().Msg("service task success")
 	}
+
+	output.Logs = aggregator.messages
+	c.JSON(http.StatusOK, output)
 }

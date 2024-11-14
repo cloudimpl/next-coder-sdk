@@ -1,6 +1,7 @@
 package polycode
 
 import (
+	"sync"
 	"time"
 )
 
@@ -92,29 +93,47 @@ func (logger *Logger) Error() *LogEntry {
 type LogPublisher interface {
 	Publish(msg LogMsg) error
 	PublishList(msgList []LogMsg) error
+	Flush(process func(messages []LogMsg) error) error
 }
 
-func GetLogger(section string, publisher LogPublisher) *Logger {
+type LogAggregator struct {
+	messages []LogMsg
+	mu       sync.Mutex
+}
+
+func (l *LogAggregator) PublishList(msgList []LogMsg) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.messages = append(l.messages, msgList...)
+	return nil
+}
+
+func (l *LogAggregator) Publish(msg LogMsg) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.messages = append(l.messages, msg)
+	return nil
+}
+
+func (l *LogAggregator) Flush(process func(messages []LogMsg) error) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	err := process(l.messages)
+	if err != nil {
+		return err
+	}
+
+	l.messages = make([]LogMsg, 0)
+	return nil
+}
+
+func CreateLogger(section string, publisher LogPublisher) *Logger {
 	return &Logger{
 		section:   section,
 		publisher: publisher,
 	}
 }
 
-type LogAggregator struct {
-	messages []LogMsg
-}
-
-func (l LogAggregator) PublishList(msgList []LogMsg) error {
-	l.messages = append(l.messages, msgList...)
-	return nil
-}
-
-func (l LogAggregator) Publish(msg LogMsg) error {
-	l.messages = append(l.messages, msg)
-	return nil
-}
-
-func CreateLogAggregator() LogAggregator {
-	return LogAggregator{messages: make([]LogMsg, 0)}
+func CreateLogAggregator() *LogAggregator {
+	return &LogAggregator{messages: make([]LogMsg, 0)}
 }

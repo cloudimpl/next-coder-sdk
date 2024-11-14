@@ -143,11 +143,12 @@ func (sc *ServiceClient) ExecService(sessionId string, req ExecServiceRequest) (
 	var res ExecServiceResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/service/exec", req, &res)
 	if err != nil {
+		fmt.Printf("exec service error %s", err.Error())
 		return ExecServiceResponse{}, err
 	}
 
 	if res.IsAsync {
-		panic(ErrTaskInProgress)
+		panic(ErrTaskStopped)
 	}
 	return res, nil
 }
@@ -157,11 +158,12 @@ func (sc *ServiceClient) ExecServiceExtended(sessionId string, req ExecServiceEx
 	var res ExecServiceResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/service/exec", req, &res)
 	if err != nil {
+		fmt.Printf("exec service extended error %s", err.Error())
 		return ExecServiceResponse{}, err
 	}
 
 	if res.IsAsync {
-		panic(ErrTaskInProgress)
+		panic(ErrTaskStopped)
 	}
 	return res, nil
 }
@@ -170,11 +172,12 @@ func (sc *ServiceClient) ExecApi(sessionId string, req ExecApiRequest) (ExecApiR
 	var res ExecApiResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/api/exec", req, &res)
 	if err != nil {
+		fmt.Printf("exec api error %s", err.Error())
 		return ExecApiResponse{}, err
 	}
 
 	if res.IsAsync {
-		panic(ErrTaskInProgress)
+		panic(ErrTaskStopped)
 	}
 	return res, nil
 }
@@ -183,11 +186,12 @@ func (sc *ServiceClient) ExecApiExtended(sessionId string, req ExecApiExtendedRe
 	var res ExecApiResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/api/exec", req, &res)
 	if err != nil {
+		fmt.Printf("exec api extended error %s", err.Error())
 		return ExecApiResponse{}, err
 	}
 
 	if res.IsAsync {
-		panic(ErrTaskInProgress)
+		panic(ErrTaskStopped)
 	}
 	return res, nil
 }
@@ -197,6 +201,7 @@ func (sc *ServiceClient) GetItem(sessionId string, req QueryRequest) (map[string
 	var res map[string]interface{}
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/get", req, &res)
 	if err != nil {
+		fmt.Printf("get item error %s", err.Error())
 		return nil, err
 	}
 	return res, nil
@@ -207,6 +212,7 @@ func (sc *ServiceClient) GetItemExtended(sessionId string, req QueryExtendedRequ
 	var res map[string]interface{}
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/get", req, &res)
 	if err != nil {
+		fmt.Printf("get item extended error %s", err.Error())
 		return nil, err
 	}
 	return res, nil
@@ -217,6 +223,7 @@ func (sc *ServiceClient) QueryItems(sessionId string, req QueryRequest) ([]map[s
 	var res []map[string]interface{}
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/query", req, &res)
 	if err != nil {
+		fmt.Printf("query items error %s", err.Error())
 		return nil, err
 	}
 	return res, nil
@@ -227,6 +234,7 @@ func (sc *ServiceClient) QueryItemsExtended(sessionId string, req QueryExtendedR
 	var res []map[string]interface{}
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/query", req, &res)
 	if err != nil {
+		fmt.Printf("query items extended error %s", err.Error())
 		return nil, err
 	}
 	return res, nil
@@ -242,6 +250,7 @@ func (sc *ServiceClient) GetFile(sessionId string, req GetFileRequest) (GetFileR
 	var res GetFileResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/get", req, &res)
 	if err != nil {
+		fmt.Printf("get file error %s", err.Error())
 		return GetFileResponse{}, err
 	}
 	return res, nil
@@ -252,6 +261,7 @@ func (sc *ServiceClient) GetFileExtended(sessionId string, req GetFileExtendedRe
 	var res GetFileResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/file/get", req, &res)
 	if err != nil {
+		fmt.Printf("get file extended error %s", err.Error())
 		return GetFileResponse{}, err
 	}
 	return res, nil
@@ -274,6 +284,7 @@ func executeApiWithoutResponse(httpClient *http.Client, baseUrl string, sessionI
 	if err != nil {
 		return err
 	}
+
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("x-polycode-task-session-id", sessionId)
 
@@ -302,6 +313,7 @@ func executeApiWithResponse[T any](httpClient *http.Client, baseUrl string, sess
 	if err != nil {
 		return err
 	}
+
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("x-polycode-task-session-id", sessionId)
 

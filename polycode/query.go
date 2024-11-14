@@ -2,7 +2,7 @@ package polycode
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -95,6 +95,7 @@ func (q Query) One(ctx context.Context, ret interface{}) error {
 
 	r, err := q.collection.client.QueryItems(q.collection.sessionId, req)
 	if err != nil {
+		fmt.Printf("client: error query item %s\n", err.Error())
 		return err
 	}
 
@@ -103,13 +104,9 @@ func (q Query) One(ctx context.Context, ret interface{}) error {
 	}
 
 	e := r[0]
-	b, err := json.Marshal(e)
+	err = ConvertType(e, ret)
 	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(b, ret)
-	if err != nil {
+		fmt.Printf("failed to convert type: %s\n", err.Error())
 		return err
 	}
 
@@ -129,23 +126,19 @@ func (q Query) All(ctx context.Context, ret interface{}) error {
 		Args:       q.args,
 		Limit:      q.limit,
 	}
+
 	r, err := q.collection.client.QueryItems(q.collection.sessionId, req)
 	if err != nil {
 		log.Println("client: error query item ", err.Error())
 		return err
 	}
 
-	b, err := json.Marshal(r)
+	err = ConvertType(r, ret)
 	if err != nil {
-		log.Println("client: error marshal query item ", err.Error())
+		fmt.Printf("failed to convert type: %s\n", err.Error())
 		return err
 	}
 
-	err = json.Unmarshal(b, ret)
-	if err != nil {
-		log.Println("client: error unmarshal query item ", err.Error())
-		return err
-	}
 	return nil
 }
 
