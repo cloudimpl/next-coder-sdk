@@ -10,7 +10,7 @@ type ServiceContext interface {
 	AppConfig() AppConfig
 	Db() DataStore
 	FileStore() FileStore
-	Logger() *Logger
+	Logger() Logger
 }
 
 type WorkflowContext interface {
@@ -18,7 +18,7 @@ type WorkflowContext interface {
 	AppConfig() AppConfig
 	Service(service string) *RemoteServiceBuilder
 	Controller(controller string) RemoteController
-	Logger() *Logger
+	Logger() Logger
 }
 
 type ApiContext interface {
@@ -26,7 +26,7 @@ type ApiContext interface {
 	AppConfig() AppConfig
 	Service(service string) *RemoteServiceBuilder
 	Controller(controller string) RemoteController
-	Logger() *Logger
+	Logger() Logger
 }
 
 type RawContext interface {
@@ -34,7 +34,7 @@ type RawContext interface {
 	AppConfig() AppConfig
 	Db() DataStore
 	FileStore() FileStore
-	Logger() *Logger
+	Logger() Logger
 	Service(service string) *RemoteServiceBuilder
 	Controller(controller string) RemoteController
 	ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error)
@@ -51,7 +51,7 @@ type ContextImpl struct {
 	fileStore     FileStore
 	config        AppConfig
 	serviceClient *ServiceClient
-	logger        *Logger
+	logger        Logger
 }
 
 func (s ContextImpl) AppConfig() AppConfig {
@@ -112,6 +112,6 @@ func (s ContextImpl) FileGet(req GetFileExtendedRequest) (GetFileResponse, error
 	return s.serviceClient.GetFileExtended(s.sessionId, req)
 }
 
-func (s ContextImpl) Logger() *Logger {
+func (s ContextImpl) Logger() Logger {
 	return s.logger
 }

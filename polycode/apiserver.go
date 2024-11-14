@@ -26,8 +26,7 @@ func invokeHealthCheck(c *gin.Context) {
 }
 
 func invokeApiHandler(c *gin.Context) {
-	aggregator := CreateLogAggregator()
-	taskLogger := CreateLogger("task", aggregator)
+	taskLogger := CreateLogger("task")
 
 	var input ApiStartEvent
 	var output ApiCompleteEvent
@@ -41,13 +40,11 @@ func invokeApiHandler(c *gin.Context) {
 		taskLogger.Info().Msg("api task success")
 	}
 
-	output.Logs = aggregator.messages
 	c.JSON(http.StatusOK, output)
 }
 
 func invokeServiceHandler(c *gin.Context) {
-	aggregator := CreateLogAggregator()
-	taskLogger := CreateLogger("task", aggregator)
+	taskLogger := CreateLogger("task")
 
 	var input ServiceStartEvent
 	var output ServiceCompleteEvent
@@ -61,6 +58,5 @@ func invokeServiceHandler(c *gin.Context) {
 		taskLogger.Info().Msg("service task success")
 	}
 
-	output.Logs = aggregator.messages
 	c.JSON(http.StatusOK, output)
 }

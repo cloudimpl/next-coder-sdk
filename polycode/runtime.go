@@ -136,7 +136,7 @@ func loadRoutes() []RouteData {
 	return routes
 }
 
-func runService(ctx context.Context, taskLogger *Logger, event ServiceStartEvent) (evt ServiceCompleteEvent) {
+func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent) (evt ServiceCompleteEvent) {
 	taskLogger.Info().Msg(fmt.Sprintf("service started %s.%s", event.Service, event.Method))
 
 	defer func() {
@@ -216,7 +216,7 @@ func runService(ctx context.Context, taskLogger *Logger, event ServiceStartEvent
 	return ValueToServiceComplete(ret)
 }
 
-func runApi(ctx context.Context, taskLogger *Logger, event ApiStartEvent) (evt ApiCompleteEvent) {
+func runApi(ctx context.Context, taskLogger Logger, event ApiStartEvent) (evt ApiCompleteEvent) {
 	taskLogger.Info().Msg(fmt.Sprintf("api started %s %s", event.Request.Method, event.Request.Path))
 
 	defer func() {
