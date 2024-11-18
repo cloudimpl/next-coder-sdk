@@ -50,7 +50,7 @@ func (t Error) With(args ...any) Error {
 		Module:   t.Module,
 		ErrorNo:  t.ErrorNo,
 		Format:   t.Format,
-		Args:     t.Args,
+		Args:     args,
 		CauseBy:  t.CauseBy,
 		CanRetry: t.CanRetry,
 	}
@@ -94,14 +94,7 @@ func IsError(err error, dst Error) bool {
 	return ret.Module == dst.Module && ret.ErrorNo == dst.ErrorNo
 }
 
-func WrapError(module string, errorNo int, err error) Error {
-	if ret, ok := err.(Error); ok {
-		return ret
-	} else {
-		return Error{
-			Module:  module,
-			ErrorNo: errorNo,
-			Format:  err.Error(),
-		}
-	}
+func IsPolycodeError(err error) bool {
+	_, ok := err.(Error)
+	return ok
 }
