@@ -3,13 +3,14 @@ package polycode
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 )
 
 func runCliCommand(args []string) error {
 	switch args[0] {
 	case "info":
 		{
-			return getAppInfo()
+			return getAppInfo(args[1])
 		}
 	default:
 		{
@@ -18,7 +19,7 @@ func runCliCommand(args []string) error {
 	}
 }
 
-func getAppInfo() error {
+func getAppInfo(filePath string) error {
 	var services []ServiceData
 	for name := range serviceMap {
 		services = append(services, ServiceData{
@@ -37,6 +38,10 @@ func getAppInfo() error {
 		return err
 	}
 
-	println(string(output))
+	err = os.WriteFile(filePath, output, 0644)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
