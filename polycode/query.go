@@ -85,7 +85,7 @@ func (q Query) Order(order Order) Query {
 	panic("implement me")
 }
 
-func (q Query) One(ctx context.Context, ret interface{}) error {
+func (q Query) One(ctx context.Context, ret interface{}) (bool, error) {
 	req := QueryRequest{
 		Collection: q.collection.name,
 		Key:        "",
@@ -96,21 +96,21 @@ func (q Query) One(ctx context.Context, ret interface{}) error {
 	r, err := q.collection.client.QueryItems(q.collection.sessionId, req)
 	if err != nil {
 		fmt.Printf("client: error query item %s\n", err.Error())
-		return err
+		return false, err
 	}
 
 	if len(r) == 0 {
-		return nil
+		return false, nil
 	}
 
 	e := r[0]
 	err = ConvertType(e, ret)
 	if err != nil {
 		fmt.Printf("failed to convert type: %s\n", err.Error())
-		return err
+		return false, err
 	}
 
-	return nil
+	return true, nil
 }
 
 func (q Query) Count(ctx context.Context) (int, error) {
