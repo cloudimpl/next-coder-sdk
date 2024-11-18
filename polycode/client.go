@@ -3,6 +3,7 @@ package polycode
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -323,16 +324,22 @@ func executeApiWithResponse[T any](httpClient *http.Client, baseUrl string, sess
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("http error, status: %v", resp.Status)
+	if res == nil {
+		return errors.New("response is null")
 	}
 
-	if res != nil {
+	if resp.StatusCode == http.StatusOK {
 		err = json.NewDecoder(resp.Body).Decode(res)
 		if err != nil {
 			return err
 		}
+		return nil
+	} else {
+		errorEvent := ErrorEvent{}
+		err = json.NewDecoder(resp.Body).Decode(&errorEvent)
+		if err != nil {
+			return err
+		}
+		return errorEvent.Error
 	}
-
-	return nil
 }
