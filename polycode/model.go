@@ -81,7 +81,6 @@ type ServiceData struct {
 type TaskData struct {
 	Name       string `json:"name"`
 	IsWorkflow bool   `json:"isWorkflow"`
-	IsReadOnly bool   `json:"isReadOnly"`
 }
 
 type ClientEnv struct {
