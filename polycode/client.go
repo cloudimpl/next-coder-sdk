@@ -68,6 +68,25 @@ type ExecApiResponse struct {
 	Error    Error       `json:"error"`
 }
 
+type ExecFuncRequest struct {
+	Input any `json:"input"`
+}
+
+type ExecFuncResult struct {
+	Input   any   `json:"input"`
+	Output  any   `json:"output"`
+	IsError bool  `json:"isError"`
+	Error   Error `json:"error"`
+}
+
+type ExecFuncResponse struct {
+	IsAsync     bool  `json:"isAsync"`
+	IsCompleted bool  `json:"isCompleted"`
+	Output      any   `json:"output"`
+	IsError     bool  `json:"isError"`
+	Error       Error `json:"error"`
+}
+
 // PutRequest represents the JSON structure for put operations
 type PutRequest struct {
 	Action     string                 `json:"action"`
@@ -195,6 +214,34 @@ func (sc *ServiceClient) ExecApiExtended(sessionId string, req ExecApiExtendedRe
 		panic(ErrTaskStopped)
 	}
 	return res, nil
+}
+
+func (sc *ServiceClient) ExecFunc(sessionId string, req ExecFuncRequest) (ExecFuncResponse, error) {
+	var res ExecFuncResponse
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/func/exec", req, &res)
+	if err != nil {
+		fmt.Printf("exec func error %s", err.Error())
+		return ExecFuncResponse{}, err
+	}
+
+	if res.IsAsync {
+		panic(ErrTaskStopped)
+	}
+	return res, nil
+}
+
+func (sc *ServiceClient) ExecFuncResult(sessionId string, req ExecFuncResult) error {
+	var res ExecFuncResponse
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/func/exec/result", req, &res)
+	if err != nil {
+		fmt.Printf("exec func result error %s", err.Error())
+		return err
+	}
+
+	if res.IsAsync {
+		panic(ErrTaskStopped)
+	}
+	return nil
 }
 
 // GetItem gets an item from the database

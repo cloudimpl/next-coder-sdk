@@ -132,3 +132,73 @@ func (r RemoteController) RequestReply(options TaskOptions, path string, apiReq 
 
 	return output.Response, nil
 }
+
+type Function struct {
+	ctx           context.Context
+	sessionId     string
+	serviceClient *ServiceClient
+	function      func(input any) (any, error)
+}
+
+func (f Function) Exec(input any) Response {
+	req1 := ExecFuncRequest{
+		Input: input,
+	}
+
+	res1, err := f.serviceClient.ExecFunc(f.sessionId, req1)
+	if err != nil {
+		fmt.Printf("client: exec func error: %v\n", err)
+		return Response{
+			output:  nil,
+			isError: true,
+			error:   ErrTaskExecError.Wrap(err),
+		}
+	}
+
+	if res1.IsCompleted {
+		return Response{
+			output:  res1.Output,
+			isError: res1.IsError,
+			error:   res1.Error,
+		}
+	}
+
+	output, err := f.function(input)
+	var response Response
+	if err != nil {
+		response = Response{
+			output:  nil,
+			isError: true,
+			error:   ErrTaskExecError.Wrap(err),
+		}
+	} else {
+		response = Response{
+			output:  output,
+			isError: false,
+			error:   Error{},
+		}
+	}
+
+	req2 := ExecFuncResult{
+		Input:   input,
+		Output:  response.output,
+		IsError: response.isError,
+		Error:   response.error,
+	}
+
+	err = f.serviceClient.ExecFuncResult(f.sessionId, req2)
+	if err != nil {
+		fmt.Printf("client: exec func result error: %v\n", err)
+		return Response{
+			output:  nil,
+			isError: true,
+			error:   ErrTaskExecError.Wrap(err),
+		}
+	}
+
+	return Response{
+		output:  output,
+		isError: false,
+		error:   Error{},
+	}
+}

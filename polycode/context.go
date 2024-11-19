@@ -5,38 +5,32 @@ import (
 	"time"
 )
 
-type ServiceContext interface {
+type BaseContext interface {
 	context.Context
 	AppConfig() AppConfig
+	Logger() Logger
+}
+
+type ServiceContext interface {
+	BaseContext
 	Db() DataStore
 	FileStore() FileStore
-	Logger() Logger
 }
 
 type WorkflowContext interface {
-	context.Context
-	AppConfig() AppConfig
+	BaseContext
 	Service(service string) *RemoteServiceBuilder
 	Controller(controller string) RemoteController
-	Logger() Logger
+	Function(function func(input any) (any, error)) Function
 }
 
 type ApiContext interface {
-	context.Context
-	AppConfig() AppConfig
-	Service(service string) *RemoteServiceBuilder
-	Controller(controller string) RemoteController
-	Logger() Logger
+	WorkflowContext
 }
 
 type RawContext interface {
-	context.Context
-	AppConfig() AppConfig
-	Db() DataStore
-	FileStore() FileStore
-	Logger() Logger
-	Service(service string) *RemoteServiceBuilder
-	Controller(controller string) RemoteController
+	ServiceContext
+	WorkflowContext
 	ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error)
 	ApiExec(req ExecApiExtendedRequest) (ExecApiResponse, error)
 	DbGet(req QueryExtendedRequest) (map[string]interface{}, error)
@@ -90,6 +84,10 @@ func (s ContextImpl) Service(service string) *RemoteServiceBuilder {
 
 func (s ContextImpl) Controller(controller string) RemoteController {
 	return RemoteController{ctx: s.ctx, sessionId: s.sessionId, controller: controller, serviceClient: s.serviceClient}
+}
+
+func (s ContextImpl) Function(function func(input any) (any, error)) Function {
+	return Function{ctx: s.ctx, sessionId: s.sessionId, function: function, serviceClient: s.serviceClient}
 }
 
 func (s ContextImpl) ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error) {
