@@ -9,7 +9,7 @@ import (
 
 func FromWorkflow[Input any, Output any](f func(polycode.WorkflowContext, Input) (Output, error)) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		apiCtx, err := apicontext.FromContext(c)
+		apiCtx, err := apicontext.FromContext(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to execute workflow: " + err.Error(),
