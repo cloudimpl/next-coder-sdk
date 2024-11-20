@@ -2,6 +2,10 @@ package polycode
 
 var currentValidator Validator = DummyValidator{}
 
+func GetValidator() Validator {
+	return currentValidator
+}
+
 func SetValidator(v Validator) {
 	currentValidator = v
 }
