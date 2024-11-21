@@ -2,7 +2,6 @@ package polycode
 
 import (
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -21,7 +20,7 @@ func InitClientEnv() {
 	var appPort uint
 	_, err := fmt.Sscanf(appPortStr, "%d", &appPort)
 	if err != nil {
-		log.Fatalf("invalid APP_PORT: %s", appPortStr)
+		appPort = 9998
 	}
 
 	clientEnv = &ClientEnv{

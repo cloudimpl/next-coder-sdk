@@ -3,36 +3,26 @@ package polycode
 import (
 	"context"
 	"encoding/json"
+	"errors"
 )
 
 type AppConfig map[string]interface{}
 
-func FromAppConfig(ctx context.Context, configObj any) {
-	srvCtx, ok := ctx.(ServiceContext)
+func FromAppConfig(ctx context.Context, configObj any) error {
+	baseCtx, ok := ctx.(BaseContext)
 	if ok {
-		ret := srvCtx.AppConfig()
+		ret := baseCtx.AppConfig()
 		b, err := json.Marshal(configObj)
 		if err != nil {
-			panic(err)
+			return err
 		}
+
 		err = json.Unmarshal(b, &ret)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		return
+		return nil
 	}
-	wkfCtx, ok := ctx.(WorkflowContext)
-	if ok {
-		ret := wkfCtx.AppConfig()
-		b, err := json.Marshal(configObj)
-		if err != nil {
-			panic(err)
-		}
-		err = json.Unmarshal(b, &ret)
-		if err != nil {
-			panic(err)
-		}
-		return
-	}
-	panic("invalid context")
+
+	return errors.New("invalid context")
 }

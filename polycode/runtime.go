@@ -81,14 +81,13 @@ func loadAppConfig() AppConfig {
 		log.Println("client: application.yml not found. generating empty config")
 		yamlData = make(map[string]interface{}) // Create an empty config
 	} else if err != nil {
-		log.Printf("client: error reading yml file: %v\n", err)
-		panic(err)
+		log.Printf("client: error reading yml file. generating empty config: %s\n", err.Error())
+		yamlData = make(map[string]interface{}) // Create an empty config
 	} else {
-		// Parse the YAML file into a map
 		err = yaml.Unmarshal(data, &yamlData)
 		if err != nil {
-			log.Printf("client: error unmarshalling yml: %v\n", err)
-			panic(err)
+			log.Printf("client: error unmarshalling yml. generating empty config: %s\n", err.Error())
+			yamlData = make(map[string]interface{})
 		}
 	}
 
