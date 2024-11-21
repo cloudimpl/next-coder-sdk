@@ -3,6 +3,7 @@ package polycode
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 )
 
@@ -17,7 +18,7 @@ func startApiServer() {
 	// Start the Gin server
 	err := r.Run(fmt.Sprintf(":%d", GetClientEnv().AppPort))
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to start api server: %s", err.Error())
 	}
 }
 

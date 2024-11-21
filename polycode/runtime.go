@@ -28,21 +28,21 @@ func RegisterService(service Service) {
 	log.Println("client: register service ", service.GetName())
 
 	if serviceMap[service.GetName()] != nil {
-		panic(fmt.Sprintf("client: service %s already registered", service.GetName()))
+		fmt.Printf("client: service %s already registered\n", service.GetName())
+	} else {
+		serviceMap[service.GetName()] = service
 	}
-
-	serviceMap[service.GetName()] = service
 }
 
 func StartApp(args ...any) {
 	if len(args) > 1 {
-		panic(errors.New("client: invalid start app arguments"))
+		log.Fatal("client: invalid start app arguments")
 	}
 
 	if len(args) > 0 {
 		g, ok := args[0].(*gin.Engine)
 		if !ok {
-			panic(errors.New("client: invalid start app arguments"))
+			log.Fatalf("client: invalid start app arguments")
 		}
 
 		log.Println("client: register api")
@@ -53,7 +53,7 @@ func StartApp(args ...any) {
 		log.Println("client: run cli command")
 		err := runCliCommand(os.Args[1:])
 		if err != nil {
-			panic(err)
+			log.Fatalf("client: %s\n", err.Error())
 		}
 	} else {
 		go startApiServer()
