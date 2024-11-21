@@ -133,16 +133,16 @@ func (r RemoteController) RequestReply(options TaskOptions, path string, apiReq 
 	return output.Response, nil
 }
 
-type Function struct {
+type Memo struct {
 	ctx           context.Context
 	sessionId     string
 	serviceClient *ServiceClient
-	function      func(input any) (any, error)
+	getter        func() (any, error)
 }
 
-func (f Function) Exec(input any) Response {
+func (f Memo) Get() Response {
 	req1 := ExecFuncRequest{
-		Input: input,
+		Input: nil,
 	}
 
 	res1, err := f.serviceClient.ExecFunc(f.sessionId, req1)
@@ -163,7 +163,7 @@ func (f Function) Exec(input any) Response {
 		}
 	}
 
-	output, err := f.function(input)
+	output, err := f.getter()
 	var response Response
 	if err != nil {
 		response = Response{
@@ -180,7 +180,7 @@ func (f Function) Exec(input any) Response {
 	}
 
 	req2 := ExecFuncResult{
-		Input:   input,
+		Input:   nil,
 		Output:  response.output,
 		IsError: response.isError,
 		Error:   response.error,

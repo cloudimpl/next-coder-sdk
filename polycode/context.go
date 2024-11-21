@@ -21,7 +21,7 @@ type WorkflowContext interface {
 	BaseContext
 	Service(service string) *RemoteServiceBuilder
 	Controller(controller string) RemoteController
-	Function(function func(input any) (any, error)) Function
+	Memo(getter func() (any, error)) Response
 }
 
 type ApiContext interface {
@@ -86,8 +86,9 @@ func (s ContextImpl) Controller(controller string) RemoteController {
 	return RemoteController{ctx: s.ctx, sessionId: s.sessionId, controller: controller, serviceClient: s.serviceClient}
 }
 
-func (s ContextImpl) Function(function func(input any) (any, error)) Function {
-	return Function{ctx: s.ctx, sessionId: s.sessionId, function: function, serviceClient: s.serviceClient}
+func (s ContextImpl) Memo(getter func() (any, error)) Response {
+	m := Memo{ctx: s.ctx, sessionId: s.sessionId, getter: getter, serviceClient: s.serviceClient}
+	return m.Get()
 }
 
 func (s ContextImpl) ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error) {
