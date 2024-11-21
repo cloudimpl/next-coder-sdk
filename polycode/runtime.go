@@ -149,7 +149,7 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 				evt = ValueToServiceComplete(nil)
 			} else {
 				stackTrace := string(debug.Stack())
-				taskLogger.Error().Msg(fmt.Sprintf("stack trace %s", stackTrace))
+				fmt.Printf("stack trace %s\n", stackTrace)
 
 				err2 := ErrInternal.Wrap(fmt.Errorf("recovered type %T", r))
 				taskLogger.Error().Msg(err2.Error())
