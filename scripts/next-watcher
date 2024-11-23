@@ -1,8 +1,12 @@
 #!/bin/sh
 
 if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 FOLDER_PATH" >&2
-    exit 1
+    echo "No folder path provided, using current directory: $(pwd)"
+    FOLDER_PATH=$(pwd)
+else
+    FOLDER_PATH=$1
 fi
 
-docker run -it --rm -v "$1":/app -w /app public.ecr.aws/kplatform/polycode/next-watcher:latest
+echo "Logging in to AWS public ECR..."
+aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+docker run -it --rm -v "$FOLDER_PATH":/app -w /app public.ecr.aws/kplatform/polycode/next-watcher:latest
