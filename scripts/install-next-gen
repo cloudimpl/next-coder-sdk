@@ -2,7 +2,10 @@
 
 # Variables
 BUCKET_URL="http://com.nextcoder.tools.s3-website-us-east-1.amazonaws.com"
-INSTALL_DIR="/usr/local/bin"
+INSTALL_DIR="$HOME/go/bin"
+
+# Create the directory if it doesn't exist
+mkdir -p "$INSTALL_DIR"
 
 # Detect OS and Architecture
 OS="$(uname | tr '[:upper:]' '[:lower:]')"
