@@ -11,14 +11,15 @@ import (
 )
 
 const (
-	TaskPending TaskStatus = iota
-	TaskRunning
-	TaskSuccess
-	TaskFailed
-	TaskCancelled
+	Insert DbAction = "insert"
+	Update DbAction = "update"
+	Upsert DbAction = "upsert"
+	Delete DbAction = "delete"
 )
 
 type TaskStatus int8
+
+type DbAction string
 
 type StartAppRequest struct {
 	AppName    string        `json:"appName"`
@@ -89,7 +90,7 @@ type ExecFuncResponse struct {
 
 // PutRequest represents the JSON structure for put operations
 type PutRequest struct {
-	Action     string                 `json:"action"`
+	Action     DbAction               `json:"action"`
 	Collection string                 `json:"collection"`
 	Key        string                 `json:"key"`
 	Item       map[string]interface{} `json:"item"`
