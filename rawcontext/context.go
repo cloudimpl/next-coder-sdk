@@ -6,9 +6,9 @@ import (
 )
 
 func FromContext(ctx context.Context) (polycode.RawContext, error) {
-	ctxImpl, ok := ctx.(polycode.ContextImpl)
+	rawCtx, ok := ctx.(polycode.RawContext)
 	if ok {
-		return ctxImpl, nil
+		return rawCtx, nil
 	}
 
 	value := ctx.Value("polycode.context")
@@ -16,5 +16,5 @@ func FromContext(ctx context.Context) (polycode.RawContext, error) {
 		return nil, polycode.ErrContextNotFound
 	}
 
-	return value.(polycode.ContextImpl), nil
+	return value.(polycode.RawContext), nil
 }
