@@ -31,18 +31,11 @@ func (c Collection) InsertOne(item interface{}) error {
 		return err
 	}
 
-	var mapItems map[string]interface{}
-	err = ConvertType(item, &mapItems)
-	if err != nil {
-		fmt.Printf("failed to convert type: %s\n", err.Error())
-		return err
-	}
-
 	req := PutRequest{
 		Action:     "insert",
 		Collection: c.name,
 		Key:        id,
-		Item:       mapItems,
+		Item:       item,
 	}
 
 	err = c.client.PutItem(c.sessionId, req)
@@ -61,18 +54,11 @@ func (c Collection) UpdateOne(item interface{}) error {
 		return err
 	}
 
-	var mapItems map[string]interface{}
-	err = ConvertType(item, &mapItems)
-	if err != nil {
-		fmt.Printf("failed to convert type: %s\n", err.Error())
-		return err
-	}
-
 	req := PutRequest{
 		Action:     "update",
 		Collection: c.name,
 		Key:        id,
-		Item:       mapItems,
+		Item:       item,
 	}
 
 	err = c.client.PutItem(c.sessionId, req)

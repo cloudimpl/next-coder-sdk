@@ -90,10 +90,10 @@ type ExecFuncResponse struct {
 
 // PutRequest represents the JSON structure for put operations
 type PutRequest struct {
-	Action     DbAction               `json:"action"`
-	Collection string                 `json:"collection"`
-	Key        string                 `json:"key"`
-	Item       map[string]interface{} `json:"item"`
+	Action     DbAction `json:"action"`
+	Collection string   `json:"collection"`
+	Key        string   `json:"key"`
+	Item       any      `json:"item"`
 }
 
 // QueryRequest represents the JSON structure for query operations
