@@ -113,6 +113,14 @@ type QueryExtendedRequest struct {
 	QueryRequest QueryRequest `json:"queryRequest"`
 }
 
+type PutExtendedRequest struct {
+	EnvId        string     `json:"envId"`
+	TenantId     string     `json:"tenantId"`
+	PartitionKey string     `json:"partitionKey"`
+	ServiceName  string     `json:"serviceName"`
+	PutRequest   PutRequest `json:"putRequest"`
+}
+
 // GetFileRequest represents the JSON structure for get file operations
 type GetFileRequest struct {
 	Key string `json:"key"`
@@ -291,6 +299,11 @@ func (sc *ServiceClient) QueryItemsExtended(sessionId string, req QueryExtendedR
 // PutItem puts an item into the database
 func (sc *ServiceClient) PutItem(sessionId string, req PutRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/put", req)
+}
+
+// PutItemExtended puts an item into the database
+func (sc *ServiceClient) PutItemExtended(sessionId string, req PutExtendedRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/put", req)
 }
 
 // GetFile gets a file from the file store

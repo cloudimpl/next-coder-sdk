@@ -29,12 +29,11 @@ type ApiContext interface {
 }
 
 type RawContext interface {
-	ServiceContext
-	WorkflowContext
 	ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error)
 	ApiExec(req ExecApiExtendedRequest) (ExecApiResponse, error)
 	DbGet(req QueryExtendedRequest) (map[string]interface{}, error)
 	DbQuery(req QueryExtendedRequest) ([]map[string]interface{}, error)
+	DbPut(req PutExtendedRequest) error
 	FileGet(req GetFileExtendedRequest) (GetFileResponse, error)
 }
 
@@ -105,6 +104,10 @@ func (s ContextImpl) DbGet(req QueryExtendedRequest) (map[string]interface{}, er
 
 func (s ContextImpl) DbQuery(req QueryExtendedRequest) ([]map[string]interface{}, error) {
 	return s.serviceClient.QueryItemsExtended(s.sessionId, req)
+}
+
+func (s ContextImpl) DbPut(req PutExtendedRequest) error {
+	return s.serviceClient.PutItemExtended(s.sessionId, req)
 }
 
 func (s ContextImpl) FileGet(req GetFileExtendedRequest) (GetFileResponse, error) {
