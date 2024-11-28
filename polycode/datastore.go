@@ -15,6 +15,16 @@ func (d DataStore) Collection(name string) Collection {
 		client:    d.client,
 		sessionId: d.sessionId,
 		name:      name,
+		isGlobal:  false,
+	}
+}
+
+func (d DataStore) GlobalCollection(name string) Collection {
+	return Collection{
+		client:    d.client,
+		sessionId: d.sessionId,
+		name:      name,
+		isGlobal:  true,
 	}
 }
 
@@ -22,6 +32,7 @@ type Collection struct {
 	client    *ServiceClient
 	sessionId string
 	name      string
+	isGlobal  bool
 }
 
 func (c Collection) InsertOne(item interface{}) error {
@@ -38,7 +49,11 @@ func (c Collection) InsertOne(item interface{}) error {
 		Item:       item,
 	}
 
-	err = c.client.PutItem(c.sessionId, req)
+	if c.isGlobal {
+		err = c.client.PutGlobalItem(c.sessionId, req)
+	} else {
+		err = c.client.PutItem(c.sessionId, req)
+	}
 	if err != nil {
 		fmt.Printf("failed to put item: %s\n", err.Error())
 		return err
@@ -61,7 +76,11 @@ func (c Collection) UpdateOne(item interface{}) error {
 		Item:       item,
 	}
 
-	err = c.client.PutItem(c.sessionId, req)
+	if c.isGlobal {
+		err = c.client.PutGlobalItem(c.sessionId, req)
+	} else {
+		err = c.client.PutItem(c.sessionId, req)
+	}
 	if err != nil {
 		fmt.Printf("failed to put item: %s\n", err.Error())
 		return err
@@ -77,7 +96,12 @@ func (c Collection) DeleteOne(key string) error {
 		Key:        key,
 	}
 
-	err := c.client.PutItem(c.sessionId, req)
+	var err error
+	if c.isGlobal {
+		err = c.client.PutGlobalItem(c.sessionId, req)
+	} else {
+		err = c.client.PutItem(c.sessionId, req)
+	}
 	if err != nil {
 		fmt.Printf("failed to put item: %s\n", err.Error())
 		return err
@@ -94,7 +118,13 @@ func (c Collection) GetOne(key string, ret interface{}) (bool, error) {
 		Args:       nil,
 	}
 
-	r, err := c.client.GetItem(c.sessionId, req)
+	var r map[string]interface{}
+	var err error
+	if c.isGlobal {
+		r, err = c.client.GetGlobalItem(c.sessionId, req)
+	} else {
+		r, err = c.client.GetItem(c.sessionId, req)
+	}
 	if err != nil {
 		fmt.Printf("failed to get item: %s\n", err.Error())
 		return false, err

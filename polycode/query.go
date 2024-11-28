@@ -93,7 +93,14 @@ func (q Query) One(ctx context.Context, ret interface{}) (bool, error) {
 		Args:       q.args,
 	}
 
-	r, err := q.collection.client.QueryItems(q.collection.sessionId, req)
+	var r []map[string]interface{}
+	var err error
+
+	if q.collection.isGlobal {
+		r, err = q.collection.client.QueryGlobalItems(q.collection.sessionId, req)
+	} else {
+		r, err = q.collection.client.QueryItems(q.collection.sessionId, req)
+	}
 	if err != nil {
 		fmt.Printf("client: error query item %s\n", err.Error())
 		return false, err
@@ -127,7 +134,14 @@ func (q Query) All(ctx context.Context, ret interface{}) error {
 		Limit:      q.limit,
 	}
 
-	r, err := q.collection.client.QueryItems(q.collection.sessionId, req)
+	var r []map[string]interface{}
+	var err error
+
+	if q.collection.isGlobal {
+		r, err = q.collection.client.QueryGlobalItems(q.collection.sessionId, req)
+	} else {
+		r, err = q.collection.client.QueryItems(q.collection.sessionId, req)
+	}
 	if err != nil {
 		log.Println("client: error query item ", err.Error())
 		return err

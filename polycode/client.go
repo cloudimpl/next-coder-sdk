@@ -172,13 +172,13 @@ func (sc *ServiceClient) ExecService(sessionId string, req ExecServiceRequest) (
 	var res ExecServiceResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/service/exec", req, &res)
 	if err != nil {
-		fmt.Printf("exec service error %s", err.Error())
 		return ExecServiceResponse{}, err
 	}
 
 	if res.IsAsync {
 		panic(ErrTaskStopped)
 	}
+
 	return res, nil
 }
 
@@ -187,13 +187,13 @@ func (sc *ServiceClient) ExecServiceExtended(sessionId string, req ExecServiceEx
 	var res ExecServiceResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/service/exec", req, &res)
 	if err != nil {
-		fmt.Printf("exec service extended error %s", err.Error())
 		return ExecServiceResponse{}, err
 	}
 
 	if res.IsAsync {
 		panic(ErrTaskStopped)
 	}
+
 	return res, nil
 }
 
@@ -201,13 +201,13 @@ func (sc *ServiceClient) ExecApi(sessionId string, req ExecApiRequest) (ExecApiR
 	var res ExecApiResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/api/exec", req, &res)
 	if err != nil {
-		fmt.Printf("exec api error %s", err.Error())
 		return ExecApiResponse{}, err
 	}
 
 	if res.IsAsync {
 		panic(ErrTaskStopped)
 	}
+
 	return res, nil
 }
 
@@ -215,13 +215,13 @@ func (sc *ServiceClient) ExecApiExtended(sessionId string, req ExecApiExtendedRe
 	var res ExecApiResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/api/exec", req, &res)
 	if err != nil {
-		fmt.Printf("exec api extended error %s", err.Error())
 		return ExecApiResponse{}, err
 	}
 
 	if res.IsAsync {
 		panic(ErrTaskStopped)
 	}
+
 	return res, nil
 }
 
@@ -229,13 +229,13 @@ func (sc *ServiceClient) ExecFunc(sessionId string, req ExecFuncRequest) (ExecFu
 	var res ExecFuncResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/func/exec", req, &res)
 	if err != nil {
-		fmt.Printf("exec func error %s", err.Error())
 		return ExecFuncResponse{}, err
 	}
 
 	if res.IsAsync {
 		panic(ErrTaskStopped)
 	}
+
 	return res, nil
 }
 
@@ -243,13 +243,13 @@ func (sc *ServiceClient) ExecFuncResult(sessionId string, req ExecFuncResult) er
 	var res ExecFuncResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/func/exec/result", req, &res)
 	if err != nil {
-		fmt.Printf("exec func result error %s", err.Error())
 		return err
 	}
 
 	if res.IsAsync {
 		panic(ErrTaskStopped)
 	}
+
 	return nil
 }
 
@@ -257,49 +257,49 @@ func (sc *ServiceClient) ExecFuncResult(sessionId string, req ExecFuncResult) er
 func (sc *ServiceClient) GetItem(sessionId string, req QueryRequest) (map[string]interface{}, error) {
 	var res map[string]interface{}
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/get", req, &res)
-	if err != nil {
-		fmt.Printf("get item error %s", err.Error())
-		return nil, err
-	}
-	return res, nil
+	return res, err
+}
+
+func (sc *ServiceClient) GetGlobalItem(sessionId string, req QueryRequest) (map[string]interface{}, error) {
+	var res map[string]interface{}
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/global/get", req, &res)
+	return res, err
 }
 
 // GetItemExtended gets an item from the database
 func (sc *ServiceClient) GetItemExtended(sessionId string, req QueryExtendedRequest) (map[string]interface{}, error) {
 	var res map[string]interface{}
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/get", req, &res)
-	if err != nil {
-		fmt.Printf("get item extended error %s", err.Error())
-		return nil, err
-	}
-	return res, nil
+	return res, err
 }
 
 // QueryItems queries items from the database
 func (sc *ServiceClient) QueryItems(sessionId string, req QueryRequest) ([]map[string]interface{}, error) {
 	var res []map[string]interface{}
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/query", req, &res)
-	if err != nil {
-		fmt.Printf("query items error %s", err.Error())
-		return nil, err
-	}
-	return res, nil
+	return res, err
+}
+
+func (sc *ServiceClient) QueryGlobalItems(sessionId string, req QueryRequest) ([]map[string]interface{}, error) {
+	var res []map[string]interface{}
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/global/query", req, &res)
+	return res, err
 }
 
 // QueryItemsExtended queries items from the database
 func (sc *ServiceClient) QueryItemsExtended(sessionId string, req QueryExtendedRequest) ([]map[string]interface{}, error) {
 	var res []map[string]interface{}
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/query", req, &res)
-	if err != nil {
-		fmt.Printf("query items extended error %s", err.Error())
-		return nil, err
-	}
-	return res, nil
+	return res, err
 }
 
 // PutItem puts an item into the database
 func (sc *ServiceClient) PutItem(sessionId string, req PutRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/put", req)
+}
+
+func (sc *ServiceClient) PutGlobalItem(sessionId string, req PutRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/global/put", req)
 }
 
 // PutItemExtended puts an item into the database
@@ -311,22 +311,14 @@ func (sc *ServiceClient) PutItemExtended(sessionId string, req PutExtendedReques
 func (sc *ServiceClient) GetFile(sessionId string, req GetFileRequest) (GetFileResponse, error) {
 	var res GetFileResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/get", req, &res)
-	if err != nil {
-		fmt.Printf("get file error %s", err.Error())
-		return GetFileResponse{}, err
-	}
-	return res, nil
+	return res, err
 }
 
 // GetFileExtended gets a file from the file store
 func (sc *ServiceClient) GetFileExtended(sessionId string, req GetFileExtendedRequest) (GetFileResponse, error) {
 	var res GetFileResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/file/get", req, &res)
-	if err != nil {
-		fmt.Printf("get file extended error %s", err.Error())
-		return GetFileResponse{}, err
-	}
-	return res, nil
+	return res, err
 }
 
 // PutFile puts a file into the file store
