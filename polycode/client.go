@@ -273,6 +273,12 @@ func (sc *ServiceClient) GetItemExtended(sessionId string, req QueryExtendedRequ
 	return res, err
 }
 
+func (sc *ServiceClient) GetGlobalItemExtended(sessionId string, req QueryExtendedRequest) (map[string]interface{}, error) {
+	var res map[string]interface{}
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/global/get", req, &res)
+	return res, err
+}
+
 // QueryItems queries items from the database
 func (sc *ServiceClient) QueryItems(sessionId string, req QueryRequest) ([]map[string]interface{}, error) {
 	var res []map[string]interface{}
@@ -293,6 +299,12 @@ func (sc *ServiceClient) QueryItemsExtended(sessionId string, req QueryExtendedR
 	return res, err
 }
 
+func (sc *ServiceClient) QueryGlobalItemsExtended(sessionId string, req QueryExtendedRequest) ([]map[string]interface{}, error) {
+	var res []map[string]interface{}
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/global/query", req, &res)
+	return res, err
+}
+
 // PutItem puts an item into the database
 func (sc *ServiceClient) PutItem(sessionId string, req PutRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/put", req)
@@ -305,6 +317,10 @@ func (sc *ServiceClient) PutGlobalItem(sessionId string, req PutRequest) error {
 // PutItemExtended puts an item into the database
 func (sc *ServiceClient) PutItemExtended(sessionId string, req PutExtendedRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/put", req)
+}
+
+func (sc *ServiceClient) PutGlobalItemExtended(sessionId string, req PutExtendedRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/global/put", req)
 }
 
 // GetFile gets a file from the file store
