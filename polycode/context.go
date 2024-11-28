@@ -29,6 +29,8 @@ type ApiContext interface {
 }
 
 type RawContext interface {
+	ServiceContext
+	WorkflowContext
 	ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error)
 	ApiExec(req ExecApiExtendedRequest) (ExecApiResponse, error)
 	DbGet(req QueryExtendedRequest) (map[string]interface{}, error)
