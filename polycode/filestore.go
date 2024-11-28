@@ -5,6 +5,19 @@ import (
 	"fmt"
 )
 
+type ReadOnlyFileStore struct {
+	client    *ServiceClient
+	sessionId string
+}
+
+func (d ReadOnlyFileStore) Folder(name string) ReadOnlyFolder {
+	return Folder{
+		client:    d.client,
+		sessionId: d.sessionId,
+		name:      name,
+	}
+}
+
 type FileStore struct {
 	client    *ServiceClient
 	sessionId string
@@ -16,6 +29,10 @@ func (d FileStore) Folder(name string) Folder {
 		sessionId: d.sessionId,
 		name:      name,
 	}
+}
+
+type ReadOnlyFolder interface {
+	Load(name string) ([]byte, error)
 }
 
 type Folder struct {
@@ -64,6 +81,13 @@ func (f Folder) Save(name string, data []byte) error {
 
 func NewFileStore(client *ServiceClient, sessionId string) FileStore {
 	return FileStore{
+		client:    client,
+		sessionId: sessionId,
+	}
+}
+
+func NewReadOnlyFileStore(client *ServiceClient, sessionId string) ReadOnlyFileStore {
+	return ReadOnlyFileStore{
 		client:    client,
 		sessionId: sessionId,
 	}
