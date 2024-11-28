@@ -5,29 +5,6 @@ import (
 	"reflect"
 )
 
-type ReadOnlyDataStore struct {
-	client    *ServiceClient
-	sessionId string
-}
-
-func (d ReadOnlyDataStore) Collection(name string) ReadOnlyCollection {
-	return Collection{
-		client:    d.client,
-		sessionId: d.sessionId,
-		name:      name,
-		isGlobal:  false,
-	}
-}
-
-func (d ReadOnlyDataStore) GlobalCollection(name string) ReadOnlyCollection {
-	return Collection{
-		client:    d.client,
-		sessionId: d.sessionId,
-		name:      name,
-		isGlobal:  true,
-	}
-}
-
 type DataStore struct {
 	client    *ServiceClient
 	sessionId string
@@ -49,11 +26,6 @@ func (d DataStore) GlobalCollection(name string) Collection {
 		name:      name,
 		isGlobal:  true,
 	}
-}
-
-type ReadOnlyCollection interface {
-	GetOne(key string, ret interface{}) (bool, error)
-	Query() Query
 }
 
 type Collection struct {
@@ -206,13 +178,6 @@ func GetId(item any) (string, error) {
 
 func NewDatabase(client *ServiceClient, sessionId string) DataStore {
 	return DataStore{
-		client:    client,
-		sessionId: sessionId,
-	}
-}
-
-func NewReadOnlyDatabase(client *ServiceClient, sessionId string) ReadOnlyDataStore {
-	return ReadOnlyDataStore{
 		client:    client,
 		sessionId: sessionId,
 	}

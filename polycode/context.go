@@ -19,8 +19,6 @@ type ServiceContext interface {
 
 type WorkflowContext interface {
 	BaseContext
-	ReadOnlyDb() ReadOnlyDataStore
-	ReadOnlyFileStore() ReadOnlyFileStore
 	Service(service string) *RemoteServiceBuilder
 	Controller(controller string) RemoteController
 	Memo(getter func() (any, error)) Response
@@ -43,9 +41,7 @@ type ContextImpl struct {
 	ctx           context.Context
 	sessionId     string
 	dataStore     DataStore
-	roDataStore   ReadOnlyDataStore
 	fileStore     FileStore
-	roFileStore   ReadOnlyFileStore
 	config        AppConfig
 	serviceClient *ServiceClient
 	logger        Logger
@@ -75,16 +71,8 @@ func (s ContextImpl) Db() DataStore {
 	return s.dataStore
 }
 
-func (s ContextImpl) ReadOnlyDb() ReadOnlyDataStore {
-	return s.roDataStore
-}
-
 func (s ContextImpl) FileStore() FileStore {
 	return s.fileStore
-}
-
-func (s ContextImpl) ReadOnlyFileStore() ReadOnlyFileStore {
-	return s.roFileStore
 }
 
 func (s ContextImpl) Service(service string) *RemoteServiceBuilder {
