@@ -24,7 +24,7 @@ type Folder struct {
 	name      string
 }
 
-func (f Folder) Load(name string) ([]byte, error) {
+func (f Folder) Load(name string) (bool, []byte, error) {
 	req := GetFileRequest{
 		Key: f.name + "/" + name,
 	}
@@ -32,21 +32,21 @@ func (f Folder) Load(name string) ([]byte, error) {
 	res, err := f.client.GetFile(f.sessionId, req)
 	if err != nil {
 		fmt.Printf("failed to get file: %s\n", err.Error())
-		return nil, err
+		return false, nil, err
 	}
 
 	if res.Content == "" {
-		return nil, nil
+		return false, nil, nil
 	}
 
 	// Decode the base64 data
 	data, err := base64.StdEncoding.DecodeString(res.Content)
 	if err != nil {
 		fmt.Printf("failed to decode base64: %s\n", err.Error())
-		return nil, err
+		return true, nil, err
 	}
 
-	return data, nil
+	return true, data, nil
 }
 
 func (f Folder) Save(name string, data []byte) error {
