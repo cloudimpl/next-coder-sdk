@@ -35,6 +35,10 @@ func (f Folder) Load(name string) ([]byte, error) {
 		return nil, err
 	}
 
+	if res.Content == "" {
+		return nil, nil
+	}
+
 	// Decode the base64 data
 	data, err := base64.StdEncoding.DecodeString(res.Content)
 	if err != nil {
