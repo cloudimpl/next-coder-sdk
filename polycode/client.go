@@ -135,6 +135,14 @@ type GetFileExtendedRequest struct {
 	GetFileRequest GetFileRequest `json:"getFileRequest"`
 }
 
+type PutFileExtendedRequest struct {
+	EnvId          string         `json:"envId"`
+	TenantId       string         `json:"tenantId"`
+	PartitionKey   string         `json:"partitionKey"`
+	ServiceName    string         `json:"serviceName"`
+	PutFileRequest PutFileRequest `json:"putFileRequest"`
+}
+
 // GetFileResponse represents the JSON structure for get file response
 type GetFileResponse struct {
 	Content string `json:"content"`
@@ -340,6 +348,10 @@ func (sc *ServiceClient) GetFileExtended(sessionId string, req GetFileExtendedRe
 // PutFile puts a file into the file store
 func (sc *ServiceClient) PutFile(sessionId string, req PutFileRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/put", req)
+}
+
+func (sc *ServiceClient) PutFileExtended(sessionId string, req PutFileExtendedRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/file/put", req)
 }
 
 func executeApiWithoutResponse(httpClient *http.Client, baseUrl string, sessionId string, path string, req any) error {
