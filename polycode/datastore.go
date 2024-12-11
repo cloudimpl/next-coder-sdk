@@ -89,6 +89,33 @@ func (c Collection) UpdateOne(item interface{}) error {
 	return nil
 }
 
+func (c Collection) UpsertOne(item interface{}) error {
+	id, err := GetId(item)
+	if err != nil {
+		fmt.Printf("failed to get id: %s\n", err.Error())
+		return err
+	}
+
+	req := PutRequest{
+		Action:     "upsert",
+		Collection: c.name,
+		Key:        id,
+		Item:       item,
+	}
+
+	if c.isGlobal {
+		err = c.client.PutGlobalItem(c.sessionId, req)
+	} else {
+		err = c.client.PutItem(c.sessionId, req)
+	}
+	if err != nil {
+		fmt.Printf("failed to put item: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
 func (c Collection) DeleteOne(key string) error {
 	req := PutRequest{
 		Action:     "delete",
