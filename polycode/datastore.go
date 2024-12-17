@@ -19,15 +19,6 @@ func (d DataStore) Collection(name string) Collection {
 	}
 }
 
-func (d DataStore) GlobalCollection(name string) Collection {
-	return Collection{
-		client:    d.client,
-		sessionId: d.sessionId,
-		name:      name,
-		isGlobal:  true,
-	}
-}
-
 type Collection struct {
 	client    *ServiceClient
 	sessionId string
