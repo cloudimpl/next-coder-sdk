@@ -164,6 +164,10 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 		return ErrorToServiceComplete(err2)
 	}
 
+	meta := ServiceMeta{
+		IsWorkflow: service.IsWorkflow(event.Method),
+	}
+
 	inputObj, err := service.GetInputType(event.Method)
 	if err != nil {
 		err2 := ErrServiceExecError.Wrap(err)
@@ -193,6 +197,7 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 		config:        appConfig,
 		serviceClient: serviceClient,
 		logger:        taskLogger,
+		meta:          event.Meta,
 	}
 
 	var ret any
@@ -213,7 +218,10 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 	}
 
 	taskLogger.Info().Msg("service completed")
-	return ValueToServiceComplete(ret)
+	serviceCompleteEvent := ValueToServiceComplete(ret)
+	serviceCompleteEvent.Meta = meta
+
+	return serviceCompleteEvent
 }
 
 func runApi(ctx context.Context, taskLogger Logger, event ApiStartEvent) (evt ApiCompleteEvent) {
@@ -265,6 +273,7 @@ func runApi(ctx context.Context, taskLogger Logger, event ApiStartEvent) (evt Ap
 		config:        appConfig,
 		serviceClient: serviceClient,
 		logger:        taskLogger,
+		meta:          event.Meta,
 	}
 
 	newCtx := context.WithValue(ctx, "polycode.context", ctxImpl)

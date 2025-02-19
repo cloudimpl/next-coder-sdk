@@ -12,6 +12,7 @@ func startApiServer() {
 	r := gin.Default()
 
 	r.GET("/v1/health", invokeHealthCheck)
+	r.GET("/v1/meta/")
 	r.POST("/v1/invoke/api", invokeApiHandler)
 	r.POST("/v1/invoke/service", invokeServiceHandler)
 

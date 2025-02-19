@@ -23,22 +23,29 @@ func (t TaskOptions) WithTimeout(timeout time.Duration) TaskOptions {
 }
 
 type ServiceStartEvent struct {
-	SessionId string `json:"sessionId"`
-	Service   string `json:"service"`
-	Method    string `json:"method"`
-	Input     any    `json:"input"`
+	SessionId string            `json:"sessionId"`
+	Service   string            `json:"service"`
+	Method    string            `json:"method"`
+	Meta      map[string]string `json:"meta"`
+	Input     any               `json:"input"`
+}
+
+type ServiceMeta struct {
+	IsWorkflow bool `json:"isWorkflow"`
 }
 
 type ServiceCompleteEvent struct {
-	IsError bool     `json:"isError"`
-	Output  any      `json:"output"`
-	Error   Error    `json:"error"`
-	Logs    []LogMsg `json:"logs"`
+	IsError bool        `json:"isError"`
+	Output  any         `json:"output"`
+	Error   Error       `json:"error"`
+	Logs    []LogMsg    `json:"logs"`
+	Meta    ServiceMeta `json:"meta"`
 }
 
 type ApiStartEvent struct {
-	SessionId string     `json:"sessionId"`
-	Request   ApiRequest `json:"request"`
+	SessionId string            `json:"sessionId"`
+	Meta      map[string]string `json:"meta"`
+	Request   ApiRequest        `json:"request"`
 }
 
 type ApiCompleteEvent struct {
