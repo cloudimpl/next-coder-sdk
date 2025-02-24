@@ -66,7 +66,7 @@ func (f Folder) Save(name string, data []byte) error {
 	return nil
 }
 
-func NewFileStore(client *ServiceClient, sessionId string) FileStore {
+func newFileStore(client *ServiceClient, sessionId string) FileStore {
 	return FileStore{
 		client:    client,
 		sessionId: sessionId,

@@ -192,8 +192,8 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 	ctxImpl := &ContextImpl{
 		ctx:           ctx,
 		sessionId:     event.SessionId,
-		dataStore:     NewDatabase(serviceClient, event.SessionId),
-		fileStore:     NewFileStore(serviceClient, event.SessionId),
+		dataStore:     newDatabase(serviceClient, event.SessionId),
+		fileStore:     newFileStore(serviceClient, event.SessionId),
 		config:        appConfig,
 		serviceClient: serviceClient,
 		logger:        taskLogger,
@@ -268,8 +268,8 @@ func runApi(ctx context.Context, taskLogger Logger, event ApiStartEvent) (evt Ap
 	ctxImpl := &ContextImpl{
 		ctx:           ctx,
 		sessionId:     event.SessionId,
-		dataStore:     NewDatabase(serviceClient, event.SessionId),
-		fileStore:     NewFileStore(serviceClient, event.SessionId),
+		dataStore:     newDatabase(serviceClient, event.SessionId),
+		fileStore:     newFileStore(serviceClient, event.SessionId),
 		config:        appConfig,
 		serviceClient: serviceClient,
 		logger:        taskLogger,

@@ -194,7 +194,7 @@ func GetId(item any) (string, error) {
 	return id, nil
 }
 
-func NewDatabase(client *ServiceClient, sessionId string) DataStore {
+func newDatabase(client *ServiceClient, sessionId string) DataStore {
 	return DataStore{
 		client:    client,
 		sessionId: sessionId,
