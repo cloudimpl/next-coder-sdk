@@ -12,7 +12,8 @@ import (
 )
 
 var serviceClient = NewServiceClient("http://127.0.0.1:9999")
-var appConfig = loadAppConfig()
+
+// var appConfig = loadAppConfig()
 var serviceMap = make(map[string]Service)
 var httpHandler *gin.Engine = nil
 
@@ -56,8 +57,12 @@ func StartApp(args ...any) {
 			log.Fatalf("client: %s\n", err.Error())
 		}
 	} else {
+		log.Printf("client: starting api server")
 		go startApiServer()
+		log.Printf("client: api server started")
+		log.Printf("client: notifying sidecar to start the runtime")
 		sendStartApp()
+		log.Printf("client: sidecar notified")
 		log.Printf("client: app %s started on port %d\n", GetClientEnv().AppName, GetClientEnv().AppPort)
 		select {}
 	}
@@ -194,7 +199,7 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 		sessionId:     event.SessionId,
 		dataStore:     newDatabase(serviceClient, event.SessionId),
 		fileStore:     newFileStore(serviceClient, event.SessionId),
-		config:        appConfig,
+		config:        AppConfig{},
 		serviceClient: serviceClient,
 		logger:        taskLogger,
 		meta:          event.Meta,
@@ -270,7 +275,7 @@ func runApi(ctx context.Context, taskLogger Logger, event ApiStartEvent) (evt Ap
 		sessionId:     event.SessionId,
 		dataStore:     newDatabase(serviceClient, event.SessionId),
 		fileStore:     newFileStore(serviceClient, event.SessionId),
-		config:        appConfig,
+		config:        AppConfig{},
 		serviceClient: serviceClient,
 		logger:        taskLogger,
 		meta:          event.Meta,
