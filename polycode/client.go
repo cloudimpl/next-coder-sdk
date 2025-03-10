@@ -94,6 +94,13 @@ type PutRequest struct {
 	Collection string   `json:"collection"`
 	Key        string   `json:"key"`
 	Item       any      `json:"item"`
+	Counter    *Counter `json:"counter.,omitempty"`
+}
+
+type Counter struct {
+	CounterName string
+	Count       uint64
+	Limit       uint64
 }
 
 // QueryRequest represents the JSON structure for query operations
