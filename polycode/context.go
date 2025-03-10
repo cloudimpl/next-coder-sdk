@@ -40,6 +40,7 @@ type RawContext interface {
 	DbGlobalPut(req PutExtendedRequest) error
 	FileGet(req GetFileExtendedRequest) (GetFileResponse, error)
 	FilePut(req PutFileExtendedRequest) error
+	IncrementCounter(req Counter) (Counter, error)
 }
 
 type ContextImpl struct {
@@ -138,6 +139,10 @@ func (s ContextImpl) FileGet(req GetFileExtendedRequest) (GetFileResponse, error
 
 func (s ContextImpl) FilePut(req PutFileExtendedRequest) error {
 	return s.serviceClient.PutFileExtended(s.sessionId, req)
+}
+
+func (s ContextImpl) IncrementCounter(req Counter) (Counter, error) {
+	return s.serviceClient.IncrementCounter(s.sessionId, req)
 }
 
 func (s ContextImpl) Logger() Logger {

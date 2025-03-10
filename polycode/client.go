@@ -361,6 +361,12 @@ func (sc *ServiceClient) PutFileExtended(sessionId string, req PutFileExtendedRe
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/file/put", req)
 }
 
+func (sc *ServiceClient) IncrementCounter(sessionId string, req Counter) (Counter, error) {
+	var res Counter
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/counter/increment", req, &res)
+	return res, err
+}
+
 func executeApiWithoutResponse(httpClient *http.Client, baseUrl string, sessionId string, path string, req any) error {
 	log.Printf("client: exec api without response from %s with session id %s", path, sessionId)
 
