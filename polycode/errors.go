@@ -13,6 +13,7 @@ var ErrInternal = DefineError("polycode.client", 7, "internal error")
 var ErrTaskNotFound = DefineError("polycode.client", 8, "task not found")
 var ErrServiceExecError = DefineError("polycode.client", 9, "service error")
 var ErrApiExecError = DefineError("polycode.client", 10, "api error")
+var CounterExceeded = DefineError("polycode.client", 11, "counter exceeded, count [%d] limit [%d]")
 
 type Error struct {
 	Module   string
