@@ -1,4 +1,4 @@
-package usagecalculator
+package resourceconsumption
 
 import (
 	"errors"

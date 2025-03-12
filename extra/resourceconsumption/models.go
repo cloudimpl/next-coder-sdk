@@ -1,4 +1,4 @@
-package usagecalculator
+package resourceconsumption
 
 type Feature struct {
 	Id        string  `polycode:"id" json:"id"`
