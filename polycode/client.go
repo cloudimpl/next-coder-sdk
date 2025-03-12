@@ -367,6 +367,10 @@ func (sc *ServiceClient) IncrementCounter(sessionId string, req Counter) (Counte
 	return res, err
 }
 
+func (sc *ServiceClient) Acknowledge(sessionId string) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/acknowledge", nil)
+}
+
 func executeApiWithoutResponse(httpClient *http.Client, baseUrl string, sessionId string, path string, req any) error {
 	log.Printf("client: exec api without response from %s with session id %s", path, sessionId)
 

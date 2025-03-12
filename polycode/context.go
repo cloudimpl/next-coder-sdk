@@ -148,3 +148,7 @@ func (s ContextImpl) IncrementCounter(req Counter) (Counter, error) {
 func (s ContextImpl) Logger() Logger {
 	return s.logger
 }
+
+func (s ContextImpl) Acknowledge() error {
+	return s.serviceClient.Acknowledge(s.sessionId)
+}
