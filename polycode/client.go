@@ -94,7 +94,7 @@ type PutRequest struct {
 	Collection string   `json:"collection"`
 	Key        string   `json:"key"`
 	Item       any      `json:"item"`
-	Counter    *Counter `json:"counter.,omitempty"`
+	TTL        int64    `json:"TTL"`
 }
 
 type Counter struct {
