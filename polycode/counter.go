@@ -13,7 +13,7 @@ func (c *Counter) Get() (uint64, error) {
 }
 
 func (c *Counter) Increment(count uint64) (uint64, bool, error) {
-	return c.IncrementWithLimit(count, -1)
+	return c.IncrementWithLimit(count, 0)
 }
 
 func (c *Counter) IncrementWithLimit(count uint64, limit uint64) (uint64, bool, error) {
