@@ -97,13 +97,6 @@ type PutRequest struct {
 	TTL        int64    `json:"TTL"`
 }
 
-type Counter struct {
-	CounterName string
-	Count       uint64
-	Limit       uint64
-	TTL         int64
-}
-
 // QueryRequest represents the JSON structure for query operations
 type QueryRequest struct {
 	Collection string        `json:"collection"`
@@ -160,6 +153,19 @@ type GetFileResponse struct {
 type PutFileRequest struct {
 	Key     string `json:"key"`
 	Content string `json:"content"`
+}
+
+type IncrementCounterRequest struct {
+	Group string `json:"group"`
+	Name  string `json:"name"`
+	Count uint64 `json:"count"`
+	Limit uint64 `json:"limit"`
+	TTL   int64  `json:"TTL"`
+}
+
+type IncrementCounterResponse struct {
+	Value       uint64 `json:"value"`
+	Incremented bool   `json:"incremented"`
 }
 
 // ServiceClient is a reusable client for calling the service API
@@ -362,8 +368,8 @@ func (sc *ServiceClient) PutFileExtended(sessionId string, req PutFileExtendedRe
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/file/put", req)
 }
 
-func (sc *ServiceClient) IncrementCounter(sessionId string, req Counter) (Counter, error) {
-	var res Counter
+func (sc *ServiceClient) IncrementCounter(sessionId string, req IncrementCounterRequest) (IncrementCounterResponse, error) {
+	var res IncrementCounterResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/counter/increment", req, &res)
 	return res, err
 }

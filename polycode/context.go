@@ -30,6 +30,7 @@ type ApiContext interface {
 }
 
 type RawContext interface {
+	BaseContext
 	ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error)
 	ApiExec(req ExecApiExtendedRequest) (ExecApiResponse, error)
 	DbGet(req QueryExtendedRequest) (map[string]interface{}, error)
@@ -40,7 +41,7 @@ type RawContext interface {
 	DbGlobalPut(req PutExtendedRequest) error
 	FileGet(req GetFileExtendedRequest) (GetFileResponse, error)
 	FilePut(req PutFileExtendedRequest) error
-	IncrementCounter(req Counter) (Counter, error)
+	Counter(group string, name string, ttl int64) Counter
 }
 
 type ContextImpl struct {
@@ -141,14 +142,20 @@ func (s ContextImpl) FilePut(req PutFileExtendedRequest) error {
 	return s.serviceClient.PutFileExtended(s.sessionId, req)
 }
 
-func (s ContextImpl) IncrementCounter(req Counter) (Counter, error) {
-	return s.serviceClient.IncrementCounter(s.sessionId, req)
-}
-
 func (s ContextImpl) Logger() Logger {
 	return s.logger
 }
 
 func (s ContextImpl) Acknowledge() error {
 	return s.serviceClient.Acknowledge(s.sessionId)
+}
+
+func (s ContextImpl) Counter(group string, name string, ttl int64) Counter {
+	return Counter{
+		client:    s.serviceClient,
+		sessionId: s.sessionId,
+		group:     group,
+		name:      name,
+		ttl:       ttl,
+	}
 }
