@@ -7,7 +7,7 @@ import (
 
 type BaseContext interface {
 	context.Context
-	Meta() map[string]string
+	Meta() ContextMeta
 	AppConfig() AppConfig
 	Logger() Logger
 }
@@ -52,10 +52,10 @@ type ContextImpl struct {
 	config        AppConfig
 	serviceClient *ServiceClient
 	logger        Logger
-	meta          map[string]string
+	meta          ContextMeta
 }
 
-func (s ContextImpl) Meta() map[string]string {
+func (s ContextImpl) Meta() ContextMeta {
 	return s.meta
 }
 

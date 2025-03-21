@@ -23,11 +23,11 @@ func (t TaskOptions) WithTimeout(timeout time.Duration) TaskOptions {
 }
 
 type ServiceStartEvent struct {
-	SessionId string            `json:"sessionId"`
-	Service   string            `json:"service"`
-	Method    string            `json:"method"`
-	Meta      map[string]string `json:"meta"`
-	Input     any               `json:"input"`
+	SessionId string      `json:"sessionId"`
+	Service   string      `json:"service"`
+	Method    string      `json:"method"`
+	Meta      ContextMeta `json:"meta"`
+	Input     any         `json:"input"`
 }
 
 type ServiceMeta struct {
@@ -43,9 +43,9 @@ type ServiceCompleteEvent struct {
 }
 
 type ApiStartEvent struct {
-	SessionId string            `json:"sessionId"`
-	Meta      map[string]string `json:"meta"`
-	Request   ApiRequest        `json:"request"`
+	SessionId string      `json:"sessionId"`
+	Meta      ContextMeta `json:"meta"`
+	Request   ApiRequest  `json:"request"`
 }
 
 type ApiCompleteEvent struct {
@@ -94,4 +94,17 @@ type ClientEnv struct {
 	EnvId   string `json:"envId"`
 	AppName string `json:"appName"`
 	AppPort uint   `json:"appPort"`
+}
+
+type ContextMeta struct {
+	EnvId        string `json:"envId"`
+	AppName      string `json:"appName"`
+	AppId        string `json:"appId"`
+	TenantId     string `json:"tenantId"`
+	PartitionKey string `json:"partitionKey"`
+	TaskGroup    string `json:"taskGroup"`
+	TaskName     string `json:"taskName"`
+	TaskId       string `json:"taskId"`
+	TraceId      string `json:"traceId"`
+	InputId      string `json:"inputId"`
 }
