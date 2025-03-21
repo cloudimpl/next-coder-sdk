@@ -370,7 +370,7 @@ func (sc *ServiceClient) PutFileExtended(sessionId string, req PutFileExtendedRe
 
 func (sc *ServiceClient) IncrementCounter(sessionId string, req IncrementCounterRequest) (IncrementCounterResponse, error) {
 	var res IncrementCounterResponse
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/counter/increment", req, &res)
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/utils/counter/increment", req, &res)
 	return res, err
 }
 
