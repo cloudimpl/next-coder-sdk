@@ -97,6 +97,7 @@ type ClientEnv struct {
 }
 
 type ContextMeta struct {
+	OrgId        string `json:"orgId"`
 	EnvId        string `json:"envId"`
 	AppName      string `json:"appName"`
 	AppId        string `json:"appId"`
