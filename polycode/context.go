@@ -33,14 +33,6 @@ type RawContext interface {
 	BaseContext
 	ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error)
 	ApiExec(req ExecApiExtendedRequest) (ExecApiResponse, error)
-	DbGet(req QueryExtendedRequest) (map[string]interface{}, error)
-	DbGlobalGet(req QueryExtendedRequest) (map[string]interface{}, error)
-	DbQuery(req QueryExtendedRequest) ([]map[string]interface{}, error)
-	DbGlobalQuery(req QueryExtendedRequest) ([]map[string]interface{}, error)
-	DbPut(req PutExtendedRequest) error
-	DbGlobalPut(req PutExtendedRequest) error
-	FileGet(req GetFileExtendedRequest) (GetFileResponse, error)
-	FilePut(req PutFileExtendedRequest) error
 	Counter(group string, name string, ttl int64) Counter
 }
 
@@ -108,38 +100,6 @@ func (s ContextImpl) ServiceExec(req ExecServiceExtendedRequest) (ExecServiceRes
 
 func (s ContextImpl) ApiExec(req ExecApiExtendedRequest) (ExecApiResponse, error) {
 	return s.serviceClient.ExecApiExtended(s.sessionId, req)
-}
-
-func (s ContextImpl) DbGet(req QueryExtendedRequest) (map[string]interface{}, error) {
-	return s.serviceClient.GetItemExtended(s.sessionId, req)
-}
-
-func (s ContextImpl) DbGlobalGet(req QueryExtendedRequest) (map[string]interface{}, error) {
-	return s.serviceClient.GetGlobalItemExtended(s.sessionId, req)
-}
-
-func (s ContextImpl) DbQuery(req QueryExtendedRequest) ([]map[string]interface{}, error) {
-	return s.serviceClient.QueryItemsExtended(s.sessionId, req)
-}
-
-func (s ContextImpl) DbGlobalQuery(req QueryExtendedRequest) ([]map[string]interface{}, error) {
-	return s.serviceClient.QueryGlobalItemsExtended(s.sessionId, req)
-}
-
-func (s ContextImpl) DbPut(req PutExtendedRequest) error {
-	return s.serviceClient.PutItemExtended(s.sessionId, req)
-}
-
-func (s ContextImpl) DbGlobalPut(req PutExtendedRequest) error {
-	return s.serviceClient.PutGlobalItemExtended(s.sessionId, req)
-}
-
-func (s ContextImpl) FileGet(req GetFileExtendedRequest) (GetFileResponse, error) {
-	return s.serviceClient.GetFileExtended(s.sessionId, req)
-}
-
-func (s ContextImpl) FilePut(req PutFileExtendedRequest) error {
-	return s.serviceClient.PutFileExtended(s.sessionId, req)
 }
 
 func (s ContextImpl) Logger() Logger {
