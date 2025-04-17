@@ -16,7 +16,6 @@ func (d DataStore) Collection(name string) Collection {
 		client:    d.client,
 		sessionId: d.sessionId,
 		name:      name,
-		isGlobal:  false,
 	}
 }
 
@@ -24,7 +23,6 @@ type Collection struct {
 	client    *ServiceClient
 	sessionId string
 	name      string
-	isGlobal  bool
 }
 
 func (c Collection) InsertOne(item interface{}) error {
@@ -53,11 +51,7 @@ func (c Collection) InsertOneWithTTL(item interface{}, expireIn time.Duration) e
 		TTL:        ttl,
 	}
 
-	if c.isGlobal {
-		err = c.client.PutGlobalItem(c.sessionId, req)
-	} else {
-		err = c.client.PutItem(c.sessionId, req)
-	}
+	err = c.client.PutItem(c.sessionId, req)
 	if err != nil {
 		fmt.Printf("failed to put item: %s\n", err.Error())
 		return err
@@ -92,11 +86,7 @@ func (c Collection) UpdateOneWithTTL(item interface{}, expireIn time.Duration) e
 		TTL:        ttl,
 	}
 
-	if c.isGlobal {
-		err = c.client.PutGlobalItem(c.sessionId, req)
-	} else {
-		err = c.client.PutItem(c.sessionId, req)
-	}
+	err = c.client.PutItem(c.sessionId, req)
 	if err != nil {
 		fmt.Printf("failed to put item: %s\n", err.Error())
 		return err
@@ -131,11 +121,7 @@ func (c Collection) UpsertOneWithTTL(item interface{}, expireIn time.Duration) e
 		TTL:        ttl,
 	}
 
-	if c.isGlobal {
-		err = c.client.PutGlobalItem(c.sessionId, req)
-	} else {
-		err = c.client.PutItem(c.sessionId, req)
-	}
+	err = c.client.PutItem(c.sessionId, req)
 	if err != nil {
 		fmt.Printf("failed to put item: %s\n", err.Error())
 		return err
@@ -151,12 +137,7 @@ func (c Collection) DeleteOne(key string) error {
 		Key:        key,
 	}
 
-	var err error
-	if c.isGlobal {
-		err = c.client.PutGlobalItem(c.sessionId, req)
-	} else {
-		err = c.client.PutItem(c.sessionId, req)
-	}
+	err := c.client.PutItem(c.sessionId, req)
 	if err != nil {
 		fmt.Printf("failed to put item: %s\n", err.Error())
 		return err
@@ -173,13 +154,7 @@ func (c Collection) GetOne(key string, ret interface{}) (bool, error) {
 		Args:       nil,
 	}
 
-	var r map[string]interface{}
-	var err error
-	if c.isGlobal {
-		r, err = c.client.GetGlobalItem(c.sessionId, req)
-	} else {
-		r, err = c.client.GetItem(c.sessionId, req)
-	}
+	r, err := c.client.GetItem(c.sessionId, req)
 	if err != nil {
 		fmt.Printf("failed to get item: %s\n", err.Error())
 		return false, err

@@ -106,23 +106,6 @@ type QueryRequest struct {
 	Limit      int           `json:"limit"`
 }
 
-// QueryExtendedRequest represents the JSON structure for query operations
-type QueryExtendedRequest struct {
-	EnvId        string       `json:"envId"`
-	TenantId     string       `json:"tenantId"`
-	PartitionKey string       `json:"partitionKey"`
-	ServiceName  string       `json:"serviceName"`
-	QueryRequest QueryRequest `json:"queryRequest"`
-}
-
-type PutExtendedRequest struct {
-	EnvId        string     `json:"envId"`
-	TenantId     string     `json:"tenantId"`
-	PartitionKey string     `json:"partitionKey"`
-	ServiceName  string     `json:"serviceName"`
-	PutRequest   PutRequest `json:"putRequest"`
-}
-
 // GetFileRequest represents the JSON structure for get file operations
 type GetFileRequest struct {
 	Key string `json:"key"`
@@ -282,25 +265,6 @@ func (sc *ServiceClient) GetItem(sessionId string, req QueryRequest) (map[string
 	return res, err
 }
 
-func (sc *ServiceClient) GetGlobalItem(sessionId string, req QueryRequest) (map[string]interface{}, error) {
-	var res map[string]interface{}
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/global/get", req, &res)
-	return res, err
-}
-
-// GetItemExtended gets an item from the database
-func (sc *ServiceClient) GetItemExtended(sessionId string, req QueryExtendedRequest) (map[string]interface{}, error) {
-	var res map[string]interface{}
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/get", req, &res)
-	return res, err
-}
-
-func (sc *ServiceClient) GetGlobalItemExtended(sessionId string, req QueryExtendedRequest) (map[string]interface{}, error) {
-	var res map[string]interface{}
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/global/get", req, &res)
-	return res, err
-}
-
 // QueryItems queries items from the database
 func (sc *ServiceClient) QueryItems(sessionId string, req QueryRequest) ([]map[string]interface{}, error) {
 	var res []map[string]interface{}
@@ -308,41 +272,9 @@ func (sc *ServiceClient) QueryItems(sessionId string, req QueryRequest) ([]map[s
 	return res, err
 }
 
-func (sc *ServiceClient) QueryGlobalItems(sessionId string, req QueryRequest) ([]map[string]interface{}, error) {
-	var res []map[string]interface{}
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/global/query", req, &res)
-	return res, err
-}
-
-// QueryItemsExtended queries items from the database
-func (sc *ServiceClient) QueryItemsExtended(sessionId string, req QueryExtendedRequest) ([]map[string]interface{}, error) {
-	var res []map[string]interface{}
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/query", req, &res)
-	return res, err
-}
-
-func (sc *ServiceClient) QueryGlobalItemsExtended(sessionId string, req QueryExtendedRequest) ([]map[string]interface{}, error) {
-	var res []map[string]interface{}
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/global/query", req, &res)
-	return res, err
-}
-
 // PutItem puts an item into the database
 func (sc *ServiceClient) PutItem(sessionId string, req PutRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/put", req)
-}
-
-func (sc *ServiceClient) PutGlobalItem(sessionId string, req PutRequest) error {
-	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/global/put", req)
-}
-
-// PutItemExtended puts an item into the database
-func (sc *ServiceClient) PutItemExtended(sessionId string, req PutExtendedRequest) error {
-	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/put", req)
-}
-
-func (sc *ServiceClient) PutGlobalItemExtended(sessionId string, req PutExtendedRequest) error {
-	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/db/global/put", req)
 }
 
 // GetFile gets a file from the file store
