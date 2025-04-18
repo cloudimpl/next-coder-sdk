@@ -2,12 +2,15 @@ package polycode
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/invopop/jsonschema"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
+	"reflect"
 	"runtime/debug"
 )
 
@@ -20,6 +23,7 @@ var httpHandler *gin.Engine = nil
 type Service interface {
 	GetName() string
 	GetInputType(method string) (any, error)
+	GetOutputType(method string) (any, error)
 	ExecuteService(ctx ServiceContext, method string, input any) (any, error)
 	ExecuteWorkflow(ctx WorkflowContext, method string, input any) (any, error)
 	IsWorkflow(method string) bool
@@ -140,6 +144,22 @@ func loadRoutes() []RouteData {
 	return routes
 }
 
+func getSchema(val any) (map[string]any, error) {
+	schema := jsonschema.Reflect(reflect.TypeOf(val))
+
+	// marshal to map[string]any
+	b, err := json.Marshal(schema)
+	if err != nil {
+		return nil, err
+	}
+
+	var m map[string]any
+	if err := json.Unmarshal(b, &m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent) (evt ServiceCompleteEvent) {
 	taskLogger.Info().Msg(fmt.Sprintf("service started %s.%s", event.Service, event.Method))
 
@@ -167,6 +187,46 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 		err2 := ErrServiceExecError.Wrap(err)
 		taskLogger.Error().Msg(err2.Error())
 		return ErrorToServiceComplete(err2)
+	}
+
+	if event.Method == "DescribeMethod" {
+		inputObj := DescribeMethodRequest{}
+		err = ConvertType(event.Input, inputObj)
+
+		inputType, err := service.GetInputType(inputObj.Method)
+		if err != nil {
+			err2 := ErrServiceExecError.Wrap(err)
+			taskLogger.Error().Msg(err2.Error())
+			return ErrorToServiceComplete(err2)
+		}
+
+		inputSchema, err := getSchema(inputType)
+		if err != nil {
+			err2 := ErrServiceExecError.Wrap(err)
+			taskLogger.Error().Msg(err2.Error())
+			return ErrorToServiceComplete(err2)
+		}
+
+		outputType, err := service.GetOutputType(inputObj.Method)
+		if err != nil {
+			err2 := ErrServiceExecError.Wrap(err)
+			taskLogger.Error().Msg(err2.Error())
+			return ErrorToServiceComplete(err2)
+		}
+
+		outputSchema, err := getSchema(outputType)
+		if err != nil {
+			err2 := ErrServiceExecError.Wrap(err)
+			taskLogger.Error().Msg(err2.Error())
+			return ErrorToServiceComplete(err2)
+		}
+
+		evt = ValueToServiceComplete(DescribeMethodResponse{
+			Method: event.Method,
+			Input:  inputSchema,
+			Output: outputSchema,
+		})
+		return
 	}
 
 	meta := ServiceMeta{

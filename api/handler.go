@@ -47,7 +47,7 @@ func FromWorkflow[Input any, Output any](f func(polycode.WorkflowContext, Input)
 
 func ExecService(c *gin.Context, tenantId string, partitionKey string, service string, method string,
 	options polycode.TaskOptions, input any, outputTransform func(any) (any, error)) {
-	apiCtx, err := apicontext.FromContext(c.Request.Context())
+	apiCtx, err := apicontext.FromContext(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to execute controller: " + err.Error(),
