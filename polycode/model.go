@@ -10,8 +10,8 @@ type DescribeMethodRequest struct {
 
 type DescribeMethodResponse struct {
 	Method string `json:"method"`
-	Input  any    `json:"input"`
-	Output any    `json:"output"`
+	Input  string `json:"input"`
+	Output string `json:"output"`
 }
 
 type BackoffStrategy struct {

@@ -144,20 +144,27 @@ func loadRoutes() []RouteData {
 	return routes
 }
 
-func getSchema(val any) (map[string]any, error) {
-	schema := jsonschema.Reflect(reflect.TypeOf(val))
-
-	// marshal to map[string]any
-	b, err := json.Marshal(schema)
-	if err != nil {
-		return nil, err
+func getSchema(obj interface{}) (interface{}, any, error) {
+	var schema interface{}
+	for _, v := range jsonschema.Reflect(obj).Definitions {
+		schema = v
 	}
 
-	var m map[string]any
-	if err := json.Unmarshal(b, &m); err != nil {
-		return nil, err
+	if reflect.ValueOf(obj).Kind() != reflect.Ptr {
+		return nil, nil, errors.New("object must be a pointer")
 	}
-	return m, nil
+
+	pointsToValue := reflect.Indirect(reflect.ValueOf(obj))
+
+	if pointsToValue.Kind() == reflect.Struct {
+		return schema, obj, nil
+	}
+
+	if pointsToValue.Kind() == reflect.Slice {
+		return nil, nil, errors.New("slice not supported as an input")
+	}
+
+	return schema, obj, nil
 }
 
 func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent) (evt ServiceCompleteEvent) {
@@ -200,7 +207,14 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 			return ErrorToServiceComplete(err2)
 		}
 
-		inputSchema, err := getSchema(inputType)
+		inputSchema, _, err := getSchema(inputType)
+		if err != nil {
+			err2 := ErrServiceExecError.Wrap(err)
+			taskLogger.Error().Msg(err2.Error())
+			return ErrorToServiceComplete(err2)
+		}
+
+		inputSchemaJson, err := json.Marshal(inputSchema)
 		if err != nil {
 			err2 := ErrServiceExecError.Wrap(err)
 			taskLogger.Error().Msg(err2.Error())
@@ -214,7 +228,14 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 			return ErrorToServiceComplete(err2)
 		}
 
-		outputSchema, err := getSchema(outputType)
+		outputSchema, _, err := getSchema(outputType)
+		if err != nil {
+			err2 := ErrServiceExecError.Wrap(err)
+			taskLogger.Error().Msg(err2.Error())
+			return ErrorToServiceComplete(err2)
+		}
+
+		outputSchemaJson, err := json.Marshal(outputSchema)
 		if err != nil {
 			err2 := ErrServiceExecError.Wrap(err)
 			taskLogger.Error().Msg(err2.Error())
@@ -223,8 +244,8 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 
 		evt = ValueToServiceComplete(DescribeMethodResponse{
 			Method: event.Method,
-			Input:  inputSchema,
-			Output: outputSchema,
+			Input:  string(inputSchemaJson),
+			Output: string(outputSchemaJson),
 		})
 		return
 	}
