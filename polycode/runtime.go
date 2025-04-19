@@ -2,7 +2,6 @@ package polycode
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -214,13 +213,6 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 			return ErrorToServiceComplete(err2)
 		}
 
-		inputSchemaJson, err := json.Marshal(inputSchema)
-		if err != nil {
-			err2 := ErrServiceExecError.Wrap(err)
-			taskLogger.Error().Msg(err2.Error())
-			return ErrorToServiceComplete(err2)
-		}
-
 		outputType, err := service.GetOutputType(inputObj.Method)
 		if err != nil {
 			err2 := ErrServiceExecError.Wrap(err)
@@ -235,17 +227,10 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 			return ErrorToServiceComplete(err2)
 		}
 
-		outputSchemaJson, err := json.Marshal(outputSchema)
-		if err != nil {
-			err2 := ErrServiceExecError.Wrap(err)
-			taskLogger.Error().Msg(err2.Error())
-			return ErrorToServiceComplete(err2)
-		}
-
 		evt = ValueToServiceComplete(DescribeMethodResponse{
 			Method: event.Method,
-			Input:  string(inputSchemaJson),
-			Output: string(outputSchemaJson),
+			Input:  inputSchema,
+			Output: outputSchema,
 		})
 		return
 	}
