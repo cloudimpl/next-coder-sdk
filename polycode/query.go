@@ -216,10 +216,12 @@ func (q UnsafeQuery) One(ctx context.Context, ret interface{}) (bool, error) {
 	req := UnsafeQueryRequest{
 		TenantId:     q.tenantId,
 		PartitionKey: q.partitionKey,
-		Collection:   q.collection.name,
-		Key:          "",
-		Filter:       q.filter,
-		Args:         q.args,
+		QueryRequest: QueryRequest{
+			Collection: q.collection.name,
+			Key:        "",
+			Filter:     q.filter,
+			Args:       q.args,
+		},
 	}
 
 	r, err := q.collection.client.UnsafeQueryItems(q.collection.sessionId, req)
@@ -251,11 +253,13 @@ func (q UnsafeQuery) All(ctx context.Context, ret interface{}) error {
 	req := UnsafeQueryRequest{
 		TenantId:     q.tenantId,
 		PartitionKey: q.partitionKey,
-		Collection:   q.collection.name,
-		Key:          "",
-		Filter:       q.filter,
-		Args:         q.args,
-		Limit:        q.limit,
+		QueryRequest: QueryRequest{
+			Collection: q.collection.name,
+			Key:        "",
+			Filter:     q.filter,
+			Args:       q.args,
+			Limit:      q.limit,
+		},
 	}
 
 	r, err := q.collection.client.UnsafeQueryItems(q.collection.sessionId, req)

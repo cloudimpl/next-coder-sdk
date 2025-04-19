@@ -98,13 +98,9 @@ type PutRequest struct {
 }
 
 type UnsafePutRequest struct {
-	TenantId     string   `json:"tenantId"`
-	PartitionKey string   `json:"partitionKey"`
-	Action       DbAction `json:"action"`
-	Collection   string   `json:"collection"`
-	Key          string   `json:"key"`
-	Item         any      `json:"item"`
-	TTL          int64    `json:"TTL"`
+	TenantId     string     `json:"tenantId"`
+	PartitionKey string     `json:"partitionKey"`
+	PutRequest   PutRequest `json:"putRequest"`
 }
 
 // QueryRequest represents the JSON structure for query operations
@@ -117,34 +113,14 @@ type QueryRequest struct {
 }
 
 type UnsafeQueryRequest struct {
-	TenantId     string        `json:"tenantId"`
-	PartitionKey string        `json:"partitionKey"`
-	Collection   string        `json:"collection"`
-	Key          string        `json:"key"`
-	Filter       string        `json:"filter"`
-	Args         []interface{} `json:"args"`
-	Limit        int           `json:"limit"`
+	TenantId     string       `json:"tenantId"`
+	PartitionKey string       `json:"partitionKey"`
+	QueryRequest QueryRequest `json:"queryRequest"`
 }
 
 // GetFileRequest represents the JSON structure for get file operations
 type GetFileRequest struct {
 	Key string `json:"key"`
-}
-
-type GetFileExtendedRequest struct {
-	EnvId          string         `json:"envId"`
-	TenantId       string         `json:"tenantId"`
-	PartitionKey   string         `json:"partitionKey"`
-	ServiceName    string         `json:"serviceName"`
-	GetFileRequest GetFileRequest `json:"getFileRequest"`
-}
-
-type PutFileExtendedRequest struct {
-	EnvId          string         `json:"envId"`
-	TenantId       string         `json:"tenantId"`
-	PartitionKey   string         `json:"partitionKey"`
-	ServiceName    string         `json:"serviceName"`
-	PutFileRequest PutFileRequest `json:"putFileRequest"`
 }
 
 // GetFileResponse represents the JSON structure for get file response

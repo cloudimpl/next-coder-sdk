@@ -91,11 +91,13 @@ func (c UnsafeCollection) InsertOneWithTTL(item interface{}, expireIn time.Durat
 	req := UnsafePutRequest{
 		TenantId:     c.tenantId,
 		PartitionKey: c.partitionKey,
-		Action:       "insert",
-		Collection:   c.name,
-		Key:          id,
-		Item:         item,
-		TTL:          ttl,
+		PutRequest: PutRequest{
+			Action:     "insert",
+			Collection: c.name,
+			Key:        id,
+			Item:       item,
+			TTL:        ttl,
+		},
 	}
 
 	err = c.client.UnsafePutItem(c.sessionId, req)
@@ -128,11 +130,13 @@ func (c UnsafeCollection) UpdateOneWithTTL(item interface{}, expireIn time.Durat
 	req := UnsafePutRequest{
 		TenantId:     c.tenantId,
 		PartitionKey: c.partitionKey,
-		Action:       "update",
-		Collection:   c.name,
-		Key:          id,
-		Item:         item,
-		TTL:          ttl,
+		PutRequest: PutRequest{
+			Action:     "update",
+			Collection: c.name,
+			Key:        id,
+			Item:       item,
+			TTL:        ttl,
+		},
 	}
 
 	err = c.client.UnsafePutItem(c.sessionId, req)
@@ -165,11 +169,13 @@ func (c UnsafeCollection) UpsertOneWithTTL(item interface{}, expireIn time.Durat
 	req := UnsafePutRequest{
 		TenantId:     c.tenantId,
 		PartitionKey: c.partitionKey,
-		Action:       "upsert",
-		Collection:   c.name,
-		Key:          id,
-		Item:         item,
-		TTL:          ttl,
+		PutRequest: PutRequest{
+			Action:     "upsert",
+			Collection: c.name,
+			Key:        id,
+			Item:       item,
+			TTL:        ttl,
+		},
 	}
 
 	err = c.client.UnsafePutItem(c.sessionId, req)
@@ -185,9 +191,11 @@ func (c UnsafeCollection) DeleteOne(key string) error {
 	req := UnsafePutRequest{
 		TenantId:     c.tenantId,
 		PartitionKey: c.partitionKey,
-		Action:       "delete",
-		Collection:   c.name,
-		Key:          key,
+		PutRequest: PutRequest{
+			Action:     "delete",
+			Collection: c.name,
+			Key:        key,
+		},
 	}
 
 	err := c.client.UnsafePutItem(c.sessionId, req)
@@ -203,10 +211,12 @@ func (c UnsafeCollection) GetOne(key string, ret interface{}) (bool, error) {
 	req := UnsafeQueryRequest{
 		TenantId:     c.tenantId,
 		PartitionKey: c.partitionKey,
-		Collection:   c.name,
-		Key:          key,
-		Filter:       "",
-		Args:         nil,
+		QueryRequest: QueryRequest{
+			Collection: c.name,
+			Key:        key,
+			Filter:     "",
+			Args:       nil,
+		},
 	}
 
 	r, err := c.client.UnsafeGetItem(c.sessionId, req)
