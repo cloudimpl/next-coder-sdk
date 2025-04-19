@@ -22,6 +22,7 @@ type WorkflowContext interface {
 	BaseContext
 	Service(service string) *RemoteServiceBuilder
 	Controller(controller string) RemoteController
+	UnsafeDb() *UnsafeDataStoreBuilder
 	Memo(getter func() (any, error)) Response
 }
 
@@ -87,6 +88,12 @@ func (s ContextImpl) Service(service string) *RemoteServiceBuilder {
 
 func (s ContextImpl) Controller(controller string) RemoteController {
 	return RemoteController{ctx: s.ctx, sessionId: s.sessionId, controller: controller, serviceClient: s.serviceClient}
+}
+
+func (s ContextImpl) UnsafeDb() *UnsafeDataStoreBuilder {
+	return &UnsafeDataStoreBuilder{
+		client: s.serviceClient, sessionId: s.sessionId,
+	}
 }
 
 func (s ContextImpl) Memo(getter func() (any, error)) Response {
