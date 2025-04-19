@@ -196,6 +196,8 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 	}
 
 	if event.Method == "DescribeMethod" {
+		fmt.Println("executing DescribeMethod")
+
 		inputObj := DescribeMethodRequest{}
 		err = ConvertType(event.Input, inputObj)
 
