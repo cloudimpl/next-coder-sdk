@@ -32,6 +32,13 @@ func (t TaskOptions) WithTimeout(timeout time.Duration) TaskOptions {
 	return t
 }
 
+type MethodStartEvent struct {
+	SessionId string      `json:"sessionId"`
+	Method    string      `json:"method"`
+	Meta      ContextMeta `json:"meta"`
+	Input     any         `json:"input"`
+}
+
 type ServiceStartEvent struct {
 	SessionId string      `json:"sessionId"`
 	Service   string      `json:"service"`
