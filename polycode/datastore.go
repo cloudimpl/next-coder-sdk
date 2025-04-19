@@ -6,6 +6,49 @@ import (
 	"time"
 )
 
+type UnsafeDataStoreBuilder struct {
+	client       *ServiceClient
+	sessionId    string
+	tenantId     string
+	partitionKey string
+}
+
+func (f *UnsafeDataStoreBuilder) WithTenantId(tenantId string) *UnsafeDataStoreBuilder {
+	f.tenantId = tenantId
+	return f
+}
+
+func (f *UnsafeDataStoreBuilder) WithPartitionKey(tenantId string) *UnsafeDataStoreBuilder {
+	f.tenantId = tenantId
+	return f
+}
+
+func (f *UnsafeDataStoreBuilder) Get() UnsafeDataStore {
+	return UnsafeDataStore{
+		client:       f.client,
+		sessionId:    f.sessionId,
+		tenantId:     f.tenantId,
+		partitionKey: f.partitionKey,
+	}
+}
+
+type UnsafeDataStore struct {
+	client       *ServiceClient
+	sessionId    string
+	tenantId     string
+	partitionKey string
+}
+
+func (u UnsafeDataStore) Collection(name string) UnsafeCollection {
+	return UnsafeCollection{
+		client:       u.client,
+		sessionId:    u.sessionId,
+		tenantId:     u.tenantId,
+		partitionKey: u.partitionKey,
+		name:         name,
+	}
+}
+
 type DataStore struct {
 	client    *ServiceClient
 	sessionId string
@@ -16,6 +59,181 @@ func (d DataStore) Collection(name string) Collection {
 		client:    d.client,
 		sessionId: d.sessionId,
 		name:      name,
+	}
+}
+
+type UnsafeCollection struct {
+	client       *ServiceClient
+	sessionId    string
+	tenantId     string
+	partitionKey string
+	name         string
+}
+
+func (c UnsafeCollection) InsertOne(item interface{}) error {
+	return c.InsertOneWithTTL(item, -1)
+}
+
+func (c UnsafeCollection) InsertOneWithTTL(item interface{}, expireIn time.Duration) error {
+	var ttl int64
+	if expireIn == -1 {
+		ttl = -1
+	} else {
+		ttl = time.Now().Unix() + int64(expireIn.Seconds())
+	}
+
+	id, err := GetId(item)
+	if err != nil {
+		fmt.Printf("failed to get id: %s\n", err.Error())
+		return err
+	}
+
+	req := UnsafePutRequest{
+		TenantId:     c.tenantId,
+		PartitionKey: c.partitionKey,
+		Action:       "insert",
+		Collection:   c.name,
+		Key:          id,
+		Item:         item,
+		TTL:          ttl,
+	}
+
+	err = c.client.UnsafePutItem(c.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to put item: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (c UnsafeCollection) UpdateOne(item interface{}) error {
+	return c.UpdateOneWithTTL(item, -1)
+}
+
+func (c UnsafeCollection) UpdateOneWithTTL(item interface{}, expireIn time.Duration) error {
+	var ttl int64
+	if expireIn == -1 {
+		ttl = -1
+	} else {
+		ttl = time.Now().Unix() + int64(expireIn.Seconds())
+	}
+
+	id, err := GetId(item)
+	if err != nil {
+		fmt.Printf("failed to get id: %s\n", err.Error())
+		return err
+	}
+
+	req := UnsafePutRequest{
+		TenantId:     c.tenantId,
+		PartitionKey: c.partitionKey,
+		Action:       "update",
+		Collection:   c.name,
+		Key:          id,
+		Item:         item,
+		TTL:          ttl,
+	}
+
+	err = c.client.UnsafePutItem(c.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to put item: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (c UnsafeCollection) UpsertOne(item interface{}) error {
+	return c.UpsertOneWithTTL(item, -1)
+}
+
+func (c UnsafeCollection) UpsertOneWithTTL(item interface{}, expireIn time.Duration) error {
+	var ttl int64
+	if expireIn == -1 {
+		ttl = -1
+	} else {
+		ttl = time.Now().Unix() + int64(expireIn.Seconds())
+	}
+
+	id, err := GetId(item)
+	if err != nil {
+		fmt.Printf("failed to get id: %s\n", err.Error())
+		return err
+	}
+
+	req := UnsafePutRequest{
+		TenantId:     c.tenantId,
+		PartitionKey: c.partitionKey,
+		Action:       "upsert",
+		Collection:   c.name,
+		Key:          id,
+		Item:         item,
+		TTL:          ttl,
+	}
+
+	err = c.client.UnsafePutItem(c.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to put item: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (c UnsafeCollection) DeleteOne(key string) error {
+	req := UnsafePutRequest{
+		TenantId:     c.tenantId,
+		PartitionKey: c.partitionKey,
+		Action:       "delete",
+		Collection:   c.name,
+		Key:          key,
+	}
+
+	err := c.client.UnsafePutItem(c.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to put item: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (c UnsafeCollection) GetOne(key string, ret interface{}) (bool, error) {
+	req := UnsafeQueryRequest{
+		TenantId:     c.tenantId,
+		PartitionKey: c.partitionKey,
+		Collection:   c.name,
+		Key:          key,
+		Filter:       "",
+		Args:         nil,
+	}
+
+	r, err := c.client.UnsafeGetItem(c.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to get item: %s\n", err.Error())
+		return false, err
+	}
+
+	if r == nil {
+		println("item not found")
+		return false, nil
+	}
+
+	err = ConvertType(r, ret)
+	if err != nil {
+		fmt.Printf("failed to convert type: %s\n", err.Error())
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (c UnsafeCollection) Query() UnsafeQuery {
+	return UnsafeQuery{
+		tenantId:     c.tenantId,
+		partitionKey: c.partitionKey,
+		collection:   &c,
 	}
 }
 

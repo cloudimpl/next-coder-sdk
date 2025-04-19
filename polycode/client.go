@@ -97,6 +97,16 @@ type PutRequest struct {
 	TTL        int64    `json:"TTL"`
 }
 
+type UnsafePutRequest struct {
+	TenantId     string   `json:"tenantId"`
+	PartitionKey string   `json:"partitionKey"`
+	Action       DbAction `json:"action"`
+	Collection   string   `json:"collection"`
+	Key          string   `json:"key"`
+	Item         any      `json:"item"`
+	TTL          int64    `json:"TTL"`
+}
+
 // QueryRequest represents the JSON structure for query operations
 type QueryRequest struct {
 	Collection string        `json:"collection"`
@@ -104,6 +114,16 @@ type QueryRequest struct {
 	Filter     string        `json:"filter"`
 	Args       []interface{} `json:"args"`
 	Limit      int           `json:"limit"`
+}
+
+type UnsafeQueryRequest struct {
+	TenantId     string        `json:"tenantId"`
+	PartitionKey string        `json:"partitionKey"`
+	Collection   string        `json:"collection"`
+	Key          string        `json:"key"`
+	Filter       string        `json:"filter"`
+	Args         []interface{} `json:"args"`
+	Limit        int           `json:"limit"`
 }
 
 // GetFileRequest represents the JSON structure for get file operations
@@ -265,6 +285,12 @@ func (sc *ServiceClient) GetItem(sessionId string, req QueryRequest) (map[string
 	return res, err
 }
 
+func (sc *ServiceClient) UnsafeGetItem(sessionId string, req UnsafeQueryRequest) (map[string]interface{}, error) {
+	var res map[string]interface{}
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/unsafe-get", req, &res)
+	return res, err
+}
+
 // QueryItems queries items from the database
 func (sc *ServiceClient) QueryItems(sessionId string, req QueryRequest) ([]map[string]interface{}, error) {
 	var res []map[string]interface{}
@@ -272,9 +298,19 @@ func (sc *ServiceClient) QueryItems(sessionId string, req QueryRequest) ([]map[s
 	return res, err
 }
 
+func (sc *ServiceClient) UnsafeQueryItems(sessionId string, req UnsafeQueryRequest) ([]map[string]interface{}, error) {
+	var res []map[string]interface{}
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/unsafe-query", req, &res)
+	return res, err
+}
+
 // PutItem puts an item into the database
 func (sc *ServiceClient) PutItem(sessionId string, req PutRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/put", req)
+}
+
+func (sc *ServiceClient) UnsafePutItem(sessionId string, req UnsafePutRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/db/unsafe-put", req)
 }
 
 // GetFile gets a file from the file store
@@ -284,20 +320,9 @@ func (sc *ServiceClient) GetFile(sessionId string, req GetFileRequest) (GetFileR
 	return res, err
 }
 
-// GetFileExtended gets a file from the file store
-func (sc *ServiceClient) GetFileExtended(sessionId string, req GetFileExtendedRequest) (GetFileResponse, error) {
-	var res GetFileResponse
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/file/get", req, &res)
-	return res, err
-}
-
 // PutFile puts a file into the file store
 func (sc *ServiceClient) PutFile(sessionId string, req PutFileRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/put", req)
-}
-
-func (sc *ServiceClient) PutFileExtended(sessionId string, req PutFileExtendedRequest) error {
-	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/file/put", req)
 }
 
 func (sc *ServiceClient) IncrementCounter(sessionId string, req IncrementCounterRequest) (IncrementCounterResponse, error) {
