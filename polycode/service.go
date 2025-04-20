@@ -59,6 +59,7 @@ func (r *RemoteServiceBuilder) Get() RemoteService {
 	return RemoteService{
 		ctx:           r.ctx,
 		sessionId:     r.sessionId,
+		envId:         r.envId,
 		service:       r.service,
 		serviceClient: r.serviceClient,
 		tenantId:      r.tenantId,
