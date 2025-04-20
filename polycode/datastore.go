@@ -18,8 +18,8 @@ func (f *UnsafeDataStoreBuilder) WithTenantId(tenantId string) *UnsafeDataStoreB
 	return f
 }
 
-func (f *UnsafeDataStoreBuilder) WithPartitionKey(tenantId string) *UnsafeDataStoreBuilder {
-	f.tenantId = tenantId
+func (f *UnsafeDataStoreBuilder) WithPartitionKey(partitionKey string) *UnsafeDataStoreBuilder {
+	f.partitionKey = partitionKey
 	return f
 }
 
