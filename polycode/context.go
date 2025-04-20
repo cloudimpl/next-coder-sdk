@@ -21,7 +21,9 @@ type ServiceContext interface {
 type WorkflowContext interface {
 	BaseContext
 	Service(service string) *RemoteServiceBuilder
+	ServiceEx(envId string, service string) *RemoteServiceBuilder
 	Controller(controller string) RemoteController
+	ControllerEx(envId string, controller string) RemoteController
 	UnsafeDb() *UnsafeDataStoreBuilder
 	Memo(getter func() (any, error)) Response
 }
