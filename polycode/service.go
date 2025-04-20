@@ -38,6 +38,7 @@ func (r Response) GetAny() (any, error) {
 type RemoteServiceBuilder struct {
 	ctx           context.Context
 	sessionId     string
+	envId         string
 	service       string
 	serviceClient *ServiceClient
 	tenantId      string
@@ -68,6 +69,7 @@ func (r *RemoteServiceBuilder) Get() RemoteService {
 type RemoteService struct {
 	ctx           context.Context
 	sessionId     string
+	envId         string
 	service       string
 	serviceClient *ServiceClient
 	tenantId      string
@@ -76,6 +78,7 @@ type RemoteService struct {
 
 func (r RemoteService) RequestReply(options TaskOptions, method string, input any) Response {
 	req := ExecServiceRequest{
+		EnvId:        r.envId,
 		Service:      r.service,
 		TenantId:     r.tenantId,
 		PartitionKey: r.partitionKey,
@@ -109,12 +112,14 @@ func (r RemoteService) Send(options TaskOptions, method string, input any) error
 type RemoteController struct {
 	ctx           context.Context
 	sessionId     string
+	envId         string
 	controller    string
 	serviceClient *ServiceClient
 }
 
 func (r RemoteController) RequestReply(options TaskOptions, path string, apiReq ApiRequest) (ApiResponse, error) {
 	req := ExecApiRequest{
+		EnvId:      r.envId,
 		Controller: r.controller,
 		Path:       path,
 		Options:    options,

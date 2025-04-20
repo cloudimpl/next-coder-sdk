@@ -32,8 +32,6 @@ type ApiContext interface {
 
 type RawContext interface {
 	BaseContext
-	ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error)
-	ApiExec(req ExecApiExtendedRequest) (ExecApiResponse, error)
 	Counter(group string, name string, ttl int64) Counter
 }
 
@@ -86,8 +84,18 @@ func (s ContextImpl) Service(service string) *RemoteServiceBuilder {
 	}
 }
 
+func (s ContextImpl) ServiceEx(envId string, service string) *RemoteServiceBuilder {
+	return &RemoteServiceBuilder{
+		ctx: s.ctx, sessionId: s.sessionId, envId: envId, service: service, serviceClient: s.serviceClient,
+	}
+}
+
 func (s ContextImpl) Controller(controller string) RemoteController {
 	return RemoteController{ctx: s.ctx, sessionId: s.sessionId, controller: controller, serviceClient: s.serviceClient}
+}
+
+func (s ContextImpl) ControllerEx(envId string, controller string) RemoteController {
+	return RemoteController{ctx: s.ctx, sessionId: s.sessionId, envId: envId, controller: controller, serviceClient: s.serviceClient}
 }
 
 func (s ContextImpl) UnsafeDb() *UnsafeDataStoreBuilder {
@@ -99,14 +107,6 @@ func (s ContextImpl) UnsafeDb() *UnsafeDataStoreBuilder {
 func (s ContextImpl) Memo(getter func() (any, error)) Response {
 	m := Memo{ctx: s.ctx, sessionId: s.sessionId, getter: getter, serviceClient: s.serviceClient}
 	return m.Get()
-}
-
-func (s ContextImpl) ServiceExec(req ExecServiceExtendedRequest) (ExecServiceResponse, error) {
-	return s.serviceClient.ExecServiceExtended(s.sessionId, req)
-}
-
-func (s ContextImpl) ApiExec(req ExecApiExtendedRequest) (ExecApiResponse, error) {
-	return s.serviceClient.ExecApiExtended(s.sessionId, req)
 }
 
 func (s ContextImpl) Logger() Logger {

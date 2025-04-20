@@ -30,6 +30,7 @@ type StartAppRequest struct {
 }
 
 type ExecServiceRequest struct {
+	EnvId        string      `json:"envId"`
 	Service      string      `json:"service"`
 	TenantId     string      `json:"tenantId"`
 	PartitionKey string      `json:"partitionKey"`
@@ -51,6 +52,7 @@ type ExecServiceResponse struct {
 }
 
 type ExecApiRequest struct {
+	EnvId      string      `json:"envId"`
 	Controller string      `json:"controller"`
 	Path       string      `json:"path"`
 	Options    TaskOptions `json:"options"`
@@ -183,38 +185,9 @@ func (sc *ServiceClient) ExecService(sessionId string, req ExecServiceRequest) (
 	return res, nil
 }
 
-// ExecServiceExtended executes a service with the given request
-func (sc *ServiceClient) ExecServiceExtended(sessionId string, req ExecServiceExtendedRequest) (ExecServiceResponse, error) {
-	var res ExecServiceResponse
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/service/exec", req, &res)
-	if err != nil {
-		return ExecServiceResponse{}, err
-	}
-
-	if res.IsAsync {
-		panic(ErrTaskStopped)
-	}
-
-	return res, nil
-}
-
 func (sc *ServiceClient) ExecApi(sessionId string, req ExecApiRequest) (ExecApiResponse, error) {
 	var res ExecApiResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/api/exec", req, &res)
-	if err != nil {
-		return ExecApiResponse{}, err
-	}
-
-	if res.IsAsync {
-		panic(ErrTaskStopped)
-	}
-
-	return res, nil
-}
-
-func (sc *ServiceClient) ExecApiExtended(sessionId string, req ExecApiExtendedRequest) (ExecApiResponse, error) {
-	var res ExecApiResponse
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/extended/context/api/exec", req, &res)
 	if err != nil {
 		return ExecApiResponse{}, err
 	}
