@@ -196,11 +196,16 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 	}
 
 	if event.Method == "DescribeMethod" {
-		fmt.Println("executing DescribeMethod")
 
 		inputObj := DescribeMethodRequest{}
 		err = ConvertType(event.Input, inputObj)
+		if err != nil {
+			err2 := ErrServiceExecError.Wrap(err)
+			taskLogger.Error().Msg(err2.Error())
+			return ErrorToServiceComplete(err2)
+		}
 
+		fmt.Printf("service %s describing method %s", event.Service, inputObj.Method)
 		inputType, err := service.GetInputType(inputObj.Method)
 		if err != nil {
 			err2 := ErrServiceExecError.Wrap(err)
