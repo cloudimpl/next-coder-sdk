@@ -24,6 +24,7 @@ func (f *UnsafeDataStoreBuilder) WithPartitionKey(tenantId string) *UnsafeDataSt
 }
 
 func (f *UnsafeDataStoreBuilder) Get() UnsafeDataStore {
+	fmt.Printf("getting unsafe db for tenant id = %s and partition key = %s", f.tenantId, f.partitionKey)
 	return UnsafeDataStore{
 		client:       f.client,
 		sessionId:    f.sessionId,
