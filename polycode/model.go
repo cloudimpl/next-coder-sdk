@@ -9,9 +9,10 @@ type DescribeMethodRequest struct {
 }
 
 type DescribeMethodResponse struct {
-	Method string      `json:"method"`
-	Input  interface{} `json:"input"`
-	Output interface{} `json:"output"`
+	Method     string      `json:"method"`
+	IsWorkflow bool        `json:"isWorkflow"`
+	Input      interface{} `json:"input"`
+	Output     interface{} `json:"output"`
 }
 
 type BackoffStrategy struct {
@@ -97,14 +98,16 @@ type RouteData struct {
 	Path   string `json:"path"`
 }
 
-type ServiceData struct {
-	Name  string     `json:"name"`
-	Tasks []TaskData `json:"tasks"`
+type ServiceDescription struct {
+	Name  string              `json:"name"`
+	Tasks []MethodDescription `json:"tasks"`
 }
 
-type TaskData struct {
-	Name       string `json:"name"`
-	IsWorkflow bool   `json:"isWorkflow"`
+type MethodDescription struct {
+	Name       string      `json:"name"`
+	IsWorkflow bool        `json:"isWorkflow"`
+	Input      interface{} `json:"input"`
+	Output     interface{} `json:"output"`
 }
 
 type ClientEnv struct {

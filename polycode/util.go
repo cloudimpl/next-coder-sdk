@@ -2,6 +2,8 @@ package polycode
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/invopop/jsonschema"
 	"reflect"
 )
 
@@ -87,4 +89,58 @@ func ConvertType(input any, output any) error {
 	}
 
 	return json.Unmarshal(in, output)
+}
+
+func getSchema(obj interface{}) (interface{}, any, error) {
+	var schema interface{}
+	for _, v := range jsonschema.Reflect(obj).Definitions {
+		schema = v
+	}
+
+	if reflect.ValueOf(obj).Kind() != reflect.Ptr {
+		return nil, nil, errors.New("object must be a pointer")
+	}
+
+	pointsToValue := reflect.Indirect(reflect.ValueOf(obj))
+
+	if pointsToValue.Kind() == reflect.Struct {
+		return schema, obj, nil
+	}
+
+	if pointsToValue.Kind() == reflect.Slice {
+		return nil, nil, errors.New("slice not supported as an input")
+	}
+
+	return schema, obj, nil
+}
+
+func GetMethodDescription(service Service, method string) (MethodDescription, error) {
+	isWorkflow := service.IsWorkflow(method)
+
+	inputType, err := service.GetInputType(method)
+	if err != nil {
+		return MethodDescription{}, err
+	}
+
+	inputSchema, _, err := getSchema(inputType)
+	if err != nil {
+		return MethodDescription{}, err
+	}
+
+	outputType, err := service.GetOutputType(method)
+	if err != nil {
+		return MethodDescription{}, err
+	}
+
+	outputSchema, _, err := getSchema(outputType)
+	if err != nil {
+		return MethodDescription{}, err
+	}
+
+	return MethodDescription{
+		Name:       method,
+		IsWorkflow: isWorkflow,
+		Input:      inputSchema,
+		Output:     outputSchema,
+	}, nil
 }

@@ -20,11 +20,11 @@ func runCliCommand(args []string) error {
 }
 
 func getAppInfo(filePath string) error {
-	var services []ServiceData
+	var services []ServiceDescription
 	for srvName, srv := range serviceMap {
-		serviceData := ServiceData{
+		serviceData := ServiceDescription{
 			Name:  srvName,
-			Tasks: make([]TaskData, 0),
+			Tasks: make([]MethodDescription, 0),
 		}
 
 		res, err := srv.ExecuteService(nil, "@definition", nil)
@@ -34,11 +34,12 @@ func getAppInfo(filePath string) error {
 
 		taskList := res.([]string)
 		for _, taskName := range taskList {
-			taskData := TaskData{
-				Name:       taskName,
-				IsWorkflow: srv.IsWorkflow(taskName),
+			description, err := GetMethodDescription(srv, taskName)
+			if err != nil {
+				return err
 			}
-			serviceData.Tasks = append(serviceData.Tasks, taskData)
+
+			serviceData.Tasks = append(serviceData.Tasks, description)
 		}
 
 		services = append(services, serviceData)

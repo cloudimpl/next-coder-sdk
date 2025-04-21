@@ -22,11 +22,11 @@ type TaskStatus int8
 type DbAction string
 
 type StartAppRequest struct {
-	AppName    string        `json:"appName"`
-	AppPort    uint          `json:"appPort"`
-	Services   []ServiceData `json:"services"`
-	ApiHandler string        `json:"apiHandler"`
-	Routes     []RouteData   `json:"routes"`
+	AppName    string               `json:"appName"`
+	AppPort    uint                 `json:"appPort"`
+	Services   []ServiceDescription `json:"services"`
+	ApiHandler string               `json:"apiHandler"`
+	Routes     []RouteData          `json:"routes"`
 }
 
 type ExecServiceRequest struct {

@@ -5,11 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/invopop/jsonschema"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
-	"reflect"
 	"runtime/debug"
 )
 
@@ -104,9 +102,9 @@ func loadAppConfig() AppConfig {
 }
 
 func sendStartApp() {
-	var services []ServiceData
+	var services []ServiceDescription
 	for name := range serviceMap {
-		services = append(services, ServiceData{
+		services = append(services, ServiceDescription{
 			Name: name,
 			// ToDo: Add task info
 		})
@@ -141,29 +139,6 @@ func loadRoutes() []RouteData {
 		}
 	}
 	return routes
-}
-
-func getSchema(obj interface{}) (interface{}, any, error) {
-	var schema interface{}
-	for _, v := range jsonschema.Reflect(obj).Definitions {
-		schema = v
-	}
-
-	if reflect.ValueOf(obj).Kind() != reflect.Ptr {
-		return nil, nil, errors.New("object must be a pointer")
-	}
-
-	pointsToValue := reflect.Indirect(reflect.ValueOf(obj))
-
-	if pointsToValue.Kind() == reflect.Struct {
-		return schema, obj, nil
-	}
-
-	if pointsToValue.Kind() == reflect.Slice {
-		return nil, nil, errors.New("slice not supported as an input")
-	}
-
-	return schema, obj, nil
 }
 
 func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent) (evt ServiceCompleteEvent) {
@@ -205,28 +180,7 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 		}
 
 		fmt.Printf("service %s describing method %s", event.Service, inputObj.Method)
-		inputType, err := service.GetInputType(inputObj.Method)
-		if err != nil {
-			err2 := ErrServiceExecError.Wrap(err)
-			taskLogger.Error().Msg(err2.Error())
-			return ErrorToServiceComplete(err2)
-		}
-
-		inputSchema, _, err := getSchema(inputType)
-		if err != nil {
-			err2 := ErrServiceExecError.Wrap(err)
-			taskLogger.Error().Msg(err2.Error())
-			return ErrorToServiceComplete(err2)
-		}
-
-		outputType, err := service.GetOutputType(inputObj.Method)
-		if err != nil {
-			err2 := ErrServiceExecError.Wrap(err)
-			taskLogger.Error().Msg(err2.Error())
-			return ErrorToServiceComplete(err2)
-		}
-
-		outputSchema, _, err := getSchema(outputType)
+		description, err := GetMethodDescription(service, inputObj.Method)
 		if err != nil {
 			err2 := ErrServiceExecError.Wrap(err)
 			taskLogger.Error().Msg(err2.Error())
@@ -234,9 +188,10 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 		}
 
 		evt = ValueToServiceComplete(DescribeMethodResponse{
-			Method: event.Method,
-			Input:  inputSchema,
-			Output: outputSchema,
+			Method:     description.Name,
+			IsWorkflow: description.IsWorkflow,
+			Input:      description.Input,
+			Output:     description.Output,
 		})
 		return
 	}
