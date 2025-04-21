@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/invopop/jsonschema"
+	"log"
 	"reflect"
 )
 
@@ -124,7 +125,9 @@ func GetMethodDescription(service Service, method string) (MethodDescription, er
 
 	inputSchema, _, err := getSchema(inputType)
 	if err != nil {
-		return MethodDescription{}, err
+		log.Printf("Error getting method description: %s\n", err.Error())
+		// skip schema extract errors
+		//return MethodDescription{}, err
 	}
 
 	return MethodDescription{
