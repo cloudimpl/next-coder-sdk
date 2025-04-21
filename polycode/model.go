@@ -12,7 +12,6 @@ type DescribeMethodResponse struct {
 	Method     string      `json:"method"`
 	IsWorkflow bool        `json:"isWorkflow"`
 	Input      interface{} `json:"input"`
-	Output     interface{} `json:"output"`
 }
 
 type BackoffStrategy struct {

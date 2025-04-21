@@ -191,7 +191,6 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 			Method:     description.Name,
 			IsWorkflow: description.IsWorkflow,
 			Input:      description.Input,
-			Output:     description.Output,
 		})
 		return
 	}
