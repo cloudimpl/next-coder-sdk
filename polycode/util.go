@@ -127,20 +127,9 @@ func GetMethodDescription(service Service, method string) (MethodDescription, er
 		return MethodDescription{}, err
 	}
 
-	outputType, err := service.GetOutputType(method)
-	if err != nil {
-		return MethodDescription{}, err
-	}
-
-	outputSchema, _, err := getSchema(outputType)
-	if err != nil {
-		return MethodDescription{}, err
-	}
-
 	return MethodDescription{
 		Name:       method,
 		IsWorkflow: isWorkflow,
 		Input:      inputSchema,
-		Output:     outputSchema,
 	}, nil
 }

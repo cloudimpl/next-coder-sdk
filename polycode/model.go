@@ -107,7 +107,6 @@ type MethodDescription struct {
 	Name       string      `json:"name"`
 	IsWorkflow bool        `json:"isWorkflow"`
 	Input      interface{} `json:"input"`
-	Output     interface{} `json:"output"`
 }
 
 type ClientEnv struct {
