@@ -107,7 +107,29 @@ func (r RemoteService) RequestReply(options TaskOptions, method string, input an
 }
 
 func (r RemoteService) Send(options TaskOptions, method string, input any) error {
-	panic("implement me")
+	req := ExecServiceRequest{
+		EnvId:         r.envId,
+		Service:       r.service,
+		TenantId:      r.tenantId,
+		PartitionKey:  r.partitionKey,
+		Method:        method,
+		Options:       options,
+		FireAndForget: true,
+		Input:         input,
+	}
+
+	output, err := r.serviceClient.ExecService(r.sessionId, req)
+	if err != nil {
+		fmt.Printf("client: exec task error: %v\n", err)
+		return ErrTaskExecError.Wrap(err)
+	}
+
+	fmt.Printf("client: exec task output: %v\n", output)
+	if output.IsError {
+		return output.Error
+	} else {
+		return nil
+	}
 }
 
 type RemoteController struct {
