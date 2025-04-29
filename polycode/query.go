@@ -87,6 +87,7 @@ func (q Query) Order(order Order) Query {
 
 func (q Query) One(ctx context.Context, ret interface{}) (bool, error) {
 	req := QueryRequest{
+		IsGlobal:   q.collection.isGlobal,
 		Collection: q.collection.name,
 		Key:        "",
 		Filter:     q.filter,
@@ -120,6 +121,7 @@ func (q Query) Count(ctx context.Context) (int, error) {
 
 func (q Query) All(ctx context.Context, ret interface{}) error {
 	req := QueryRequest{
+		IsGlobal:   q.collection.isGlobal,
 		Collection: q.collection.name,
 		Key:        "",
 		Filter:     q.filter,

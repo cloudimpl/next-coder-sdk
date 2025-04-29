@@ -63,6 +63,15 @@ func (d DataStore) Collection(name string) Collection {
 	}
 }
 
+func (d DataStore) GlobalCollection(name string) Collection {
+	return Collection{
+		client:    d.client,
+		sessionId: d.sessionId,
+		name:      name,
+		isGlobal:  true,
+	}
+}
+
 type UnsafeCollection struct {
 	client       *ServiceClient
 	sessionId    string
@@ -252,6 +261,7 @@ type Collection struct {
 	client    *ServiceClient
 	sessionId string
 	name      string
+	isGlobal  bool
 }
 
 func (c Collection) InsertOne(item interface{}) error {
@@ -274,6 +284,7 @@ func (c Collection) InsertOneWithTTL(item interface{}, expireIn time.Duration) e
 
 	req := PutRequest{
 		Action:     "insert",
+		IsGlobal:   c.isGlobal,
 		Collection: c.name,
 		Key:        id,
 		Item:       item,
@@ -309,6 +320,7 @@ func (c Collection) UpdateOneWithTTL(item interface{}, expireIn time.Duration) e
 
 	req := PutRequest{
 		Action:     "update",
+		IsGlobal:   c.isGlobal,
 		Collection: c.name,
 		Key:        id,
 		Item:       item,
@@ -344,6 +356,7 @@ func (c Collection) UpsertOneWithTTL(item interface{}, expireIn time.Duration) e
 
 	req := PutRequest{
 		Action:     "upsert",
+		IsGlobal:   c.isGlobal,
 		Collection: c.name,
 		Key:        id,
 		Item:       item,
@@ -377,6 +390,7 @@ func (c Collection) DeleteOne(key string) error {
 
 func (c Collection) GetOne(key string, ret interface{}) (bool, error) {
 	req := QueryRequest{
+		IsGlobal:   c.isGlobal,
 		Collection: c.name,
 		Key:        key,
 		Filter:     "",

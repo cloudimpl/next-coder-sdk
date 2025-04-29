@@ -5,7 +5,7 @@ import (
 )
 
 type DescribeMethodRequest struct {
-	Method string
+	Method string `json:"method"`
 }
 
 type DescribeMethodResponse struct {

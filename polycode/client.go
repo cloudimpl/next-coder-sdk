@@ -94,6 +94,7 @@ type ExecFuncResponse struct {
 // PutRequest represents the JSON structure for put operations
 type PutRequest struct {
 	Action     DbAction `json:"action"`
+	IsGlobal   bool     `json:"isGlobal"`
 	Collection string   `json:"collection"`
 	Key        string   `json:"key"`
 	Item       any      `json:"item"`
@@ -108,6 +109,7 @@ type UnsafePutRequest struct {
 
 // QueryRequest represents the JSON structure for query operations
 type QueryRequest struct {
+	IsGlobal   bool          `json:"isGlobal"`
 	Collection string        `json:"collection"`
 	Key        string        `json:"key"`
 	Filter     string        `json:"filter"`
