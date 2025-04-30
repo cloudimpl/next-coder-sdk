@@ -19,6 +19,7 @@ var httpHandler *gin.Engine = nil
 
 type Service interface {
 	GetName() string
+	GetDescription(method string) (string, error)
 	GetInputType(method string) (any, error)
 	GetOutputType(method string) (any, error)
 	ExecuteService(ctx ServiceContext, method string, input any) (any, error)
@@ -170,7 +171,7 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 		return ErrorToServiceComplete(err2)
 	}
 
-	if event.Method == "DescribeMethod" {
+	if event.Method == "@DescribeMethod" {
 		inputObj := DescribeMethodRequest{}
 		err = ConvertType(event.Input, &inputObj)
 		if err != nil {
@@ -179,19 +180,15 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 			return ErrorToServiceComplete(err2)
 		}
 
-		fmt.Printf("service %s describing method %s", event.Service, inputObj.Method)
-		description, err := GetMethodDescription(service, inputObj.Method)
+		fmt.Printf("service %s describing method %s", event.Service, inputObj.Name)
+		description, err := GetMethodDescription(service, inputObj.Name)
 		if err != nil {
 			err2 := ErrServiceExecError.Wrap(err)
 			taskLogger.Error().Msg(err2.Error())
 			return ErrorToServiceComplete(err2)
 		}
 
-		evt = ValueToServiceComplete(DescribeMethodResponse{
-			Method:     description.Name,
-			IsWorkflow: description.IsWorkflow,
-			Input:      description.Input,
-		})
+		evt = ValueToServiceComplete(description)
 		return
 	}
 

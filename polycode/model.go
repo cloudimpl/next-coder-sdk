@@ -5,13 +5,7 @@ import (
 )
 
 type DescribeMethodRequest struct {
-	Method string `json:"method"`
-}
-
-type DescribeMethodResponse struct {
-	Method     string      `json:"method"`
-	IsWorkflow bool        `json:"isWorkflow"`
-	Input      interface{} `json:"input"`
+	Name string `json:"name"`
 }
 
 type BackoffStrategy struct {
@@ -103,9 +97,10 @@ type ServiceDescription struct {
 }
 
 type MethodDescription struct {
-	Name       string      `json:"name"`
-	IsWorkflow bool        `json:"isWorkflow"`
-	Input      interface{} `json:"input"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	IsWorkflow  bool        `json:"isWorkflow"`
+	Input       interface{} `json:"input"`
 }
 
 type ClientEnv struct {

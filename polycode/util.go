@@ -116,6 +116,11 @@ func getSchema(obj interface{}) (interface{}, any, error) {
 }
 
 func GetMethodDescription(service Service, method string) (MethodDescription, error) {
+	description, err := service.GetDescription(method)
+	if err != nil {
+		return MethodDescription{}, err
+	}
+
 	isWorkflow := service.IsWorkflow(method)
 
 	inputType, err := service.GetInputType(method)
@@ -131,8 +136,9 @@ func GetMethodDescription(service Service, method string) (MethodDescription, er
 	}
 
 	return MethodDescription{
-		Name:       method,
-		IsWorkflow: isWorkflow,
-		Input:      inputSchema,
+		Name:        method,
+		Description: description,
+		IsWorkflow:  isWorkflow,
+		Input:       inputSchema,
 	}, nil
 }
