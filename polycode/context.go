@@ -22,6 +22,8 @@ type WorkflowContext interface {
 	BaseContext
 	Service(service string) *RemoteServiceBuilder
 	ServiceEx(envId string, service string) *RemoteServiceBuilder
+	App(appName string) RemoteApp
+	AppEx(envId string, appName string) RemoteApp
 	Controller(controller string) RemoteController
 	ControllerEx(envId string, controller string) RemoteController
 	UnsafeDb() *UnsafeDataStoreBuilder
