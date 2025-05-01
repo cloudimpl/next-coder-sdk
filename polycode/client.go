@@ -40,12 +40,33 @@ type ExecServiceRequest struct {
 	Input         any         `json:"input"`
 }
 
+type ExecAppRequest struct {
+	EnvId         string      `json:"envId"`
+	AppName       string      `json:"service"`
+	Method        string      `json:"method"`
+	Options       TaskOptions `json:"options"`
+	FireAndForget bool        `json:"fireAndForget"`
+	Input         any         `json:"input"`
+}
+
 type ExecServiceExtendedRequest struct {
 	EnvId              string             `json:"envId"`
 	ExecServiceRequest ExecServiceRequest `json:"execServiceRequest"`
 }
 
+type ExecAppExtendedRequest struct {
+	EnvId          string         `json:"envId"`
+	ExecAppRequest ExecAppRequest `json:"execAppRequest"`
+}
+
 type ExecServiceResponse struct {
+	IsAsync bool  `json:"isAsync"`
+	Output  any   `json:"output"`
+	IsError bool  `json:"isError"`
+	Error   Error `json:"error"`
+}
+
+type ExecAppResponse struct {
 	IsAsync bool  `json:"isAsync"`
 	Output  any   `json:"output"`
 	IsError bool  `json:"isError"`
@@ -179,6 +200,20 @@ func (sc *ServiceClient) ExecService(sessionId string, req ExecServiceRequest) (
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/service/exec", req, &res)
 	if err != nil {
 		return ExecServiceResponse{}, err
+	}
+
+	if res.IsAsync {
+		panic(ErrTaskStopped)
+	}
+
+	return res, nil
+}
+
+func (sc *ServiceClient) ExecApp(sessionId string, req ExecAppRequest) (ExecAppResponse, error) {
+	var res ExecAppResponse
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/app/exec", req, &res)
+	if err != nil {
+		return ExecAppResponse{}, err
 	}
 
 	if res.IsAsync {

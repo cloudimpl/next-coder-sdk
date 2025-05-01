@@ -92,6 +92,18 @@ func (s ContextImpl) ServiceEx(envId string, service string) *RemoteServiceBuild
 	}
 }
 
+func (s ContextImpl) App(appName string) RemoteApp {
+	return RemoteApp{
+		ctx: s.ctx, sessionId: s.sessionId, appName: appName, serviceClient: s.serviceClient,
+	}
+}
+
+func (s ContextImpl) AppEx(envId string, appName string) RemoteApp {
+	return RemoteApp{
+		ctx: s.ctx, sessionId: s.sessionId, envId: envId, appName: appName, serviceClient: s.serviceClient,
+	}
+}
+
 func (s ContextImpl) Controller(controller string) RemoteController {
 	return RemoteController{ctx: s.ctx, sessionId: s.sessionId, controller: controller, serviceClient: s.serviceClient}
 }
