@@ -219,6 +219,7 @@ func (q UnsafeQuery) One(ctx context.Context, ret interface{}) (bool, error) {
 		TenantId:     q.tenantId,
 		PartitionKey: q.partitionKey,
 		QueryRequest: QueryRequest{
+			IsGlobal:   q.collection.isGlobal,
 			Collection: q.collection.name,
 			Key:        "",
 			Filter:     q.filter,
@@ -256,6 +257,7 @@ func (q UnsafeQuery) All(ctx context.Context, ret interface{}) error {
 		TenantId:     q.tenantId,
 		PartitionKey: q.partitionKey,
 		QueryRequest: QueryRequest{
+			IsGlobal:   q.collection.isGlobal,
 			Collection: q.collection.name,
 			Key:        "",
 			Filter:     q.filter,

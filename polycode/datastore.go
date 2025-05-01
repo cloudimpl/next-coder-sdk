@@ -50,6 +50,15 @@ func (u UnsafeDataStore) Collection(name string) UnsafeCollection {
 	}
 }
 
+func (u UnsafeDataStore) GlobalCollection(name string) Collection {
+	return Collection{
+		client:    u.client,
+		sessionId: u.sessionId,
+		name:      name,
+		isGlobal:  true,
+	}
+}
+
 type DataStore struct {
 	client    *ServiceClient
 	sessionId string
@@ -78,6 +87,7 @@ type UnsafeCollection struct {
 	tenantId     string
 	partitionKey string
 	name         string
+	isGlobal     bool
 }
 
 func (c UnsafeCollection) InsertOne(item interface{}) error {
@@ -103,6 +113,7 @@ func (c UnsafeCollection) InsertOneWithTTL(item interface{}, expireIn time.Durat
 		PartitionKey: c.partitionKey,
 		PutRequest: PutRequest{
 			Action:     "insert",
+			IsGlobal:   c.isGlobal,
 			Collection: c.name,
 			Key:        id,
 			Item:       item,
@@ -142,6 +153,7 @@ func (c UnsafeCollection) UpdateOneWithTTL(item interface{}, expireIn time.Durat
 		PartitionKey: c.partitionKey,
 		PutRequest: PutRequest{
 			Action:     "update",
+			IsGlobal:   c.isGlobal,
 			Collection: c.name,
 			Key:        id,
 			Item:       item,
@@ -181,6 +193,7 @@ func (c UnsafeCollection) UpsertOneWithTTL(item interface{}, expireIn time.Durat
 		PartitionKey: c.partitionKey,
 		PutRequest: PutRequest{
 			Action:     "upsert",
+			IsGlobal:   c.isGlobal,
 			Collection: c.name,
 			Key:        id,
 			Item:       item,
@@ -203,6 +216,7 @@ func (c UnsafeCollection) DeleteOne(key string) error {
 		PartitionKey: c.partitionKey,
 		PutRequest: PutRequest{
 			Action:     "delete",
+			IsGlobal:   c.isGlobal,
 			Collection: c.name,
 			Key:        key,
 		},
@@ -222,6 +236,7 @@ func (c UnsafeCollection) GetOne(key string, ret interface{}) (bool, error) {
 		TenantId:     c.tenantId,
 		PartitionKey: c.partitionKey,
 		QueryRequest: QueryRequest{
+			IsGlobal:   c.isGlobal,
 			Collection: c.name,
 			Key:        key,
 			Filter:     "",
@@ -375,6 +390,7 @@ func (c Collection) UpsertOneWithTTL(item interface{}, expireIn time.Duration) e
 func (c Collection) DeleteOne(key string) error {
 	req := PutRequest{
 		Action:     "delete",
+		IsGlobal:   c.isGlobal,
 		Collection: c.name,
 		Key:        key,
 	}
