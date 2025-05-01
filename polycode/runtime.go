@@ -22,9 +22,9 @@ type Service interface {
 	GetDescription(method string) (string, error)
 	GetInputType(method string) (any, error)
 	GetOutputType(method string) (any, error)
+	IsWorkflow(method string) bool
 	ExecuteService(ctx ServiceContext, method string, input any) (any, error)
 	ExecuteWorkflow(ctx WorkflowContext, method string, input any) (any, error)
-	IsWorkflow(method string) bool
 }
 
 func RegisterService(service Service) {
@@ -103,12 +103,9 @@ func loadAppConfig() AppConfig {
 }
 
 func sendStartApp() {
-	var services []ServiceDescription
-	for name := range serviceMap {
-		services = append(services, ServiceDescription{
-			Name: name,
-			// ToDo: Add task info
-		})
+	services, err := ExtractServiceDescription()
+	if err != nil {
+		log.Fatalf("client: %s\n", err.Error())
 	}
 
 	req := StartAppRequest{
@@ -118,7 +115,6 @@ func sendStartApp() {
 		Routes:   loadRoutes(),
 	}
 
-	var err error
 	for {
 		err = serviceClient.StartApp(req)
 		if err == nil {
@@ -169,27 +165,6 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 		err2 := ErrServiceExecError.Wrap(err)
 		taskLogger.Error().Msg(err2.Error())
 		return ErrorToServiceComplete(err2)
-	}
-
-	if event.Method == "@DescribeMethod" {
-		inputObj := DescribeMethodRequest{}
-		err = ConvertType(event.Input, &inputObj)
-		if err != nil {
-			err2 := ErrServiceExecError.Wrap(err)
-			taskLogger.Error().Msg(err2.Error())
-			return ErrorToServiceComplete(err2)
-		}
-
-		fmt.Printf("service %s describing method %s", event.Service, inputObj.Name)
-		description, err := GetMethodDescription(service, inputObj.Name)
-		if err != nil {
-			err2 := ErrServiceExecError.Wrap(err)
-			taskLogger.Error().Msg(err2.Error())
-			return ErrorToServiceComplete(err2)
-		}
-
-		evt = ValueToServiceComplete(description)
-		return
 	}
 
 	meta := ServiceMeta{

@@ -4,10 +4,6 @@ import (
 	"time"
 )
 
-type DescribeMethodRequest struct {
-	Name string `json:"name"`
-}
-
 type BackoffStrategy struct {
 	InitialInterval time.Duration `json:"initialInterval"`
 	MaxInterval     time.Duration `json:"maxInterval"`

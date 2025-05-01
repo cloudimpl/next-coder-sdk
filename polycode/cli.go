@@ -20,29 +20,9 @@ func runCliCommand(args []string) error {
 }
 
 func getAppInfo(filePath string) error {
-	var services []ServiceDescription
-	for srvName, srv := range serviceMap {
-		serviceData := ServiceDescription{
-			Name:  srvName,
-			Tasks: make([]MethodDescription, 0),
-		}
-
-		res, err := srv.ExecuteService(nil, "@definition", nil)
-		if err != nil {
-			return err
-		}
-
-		taskList := res.([]string)
-		for _, taskName := range taskList {
-			description, err := GetMethodDescription(srv, taskName)
-			if err != nil {
-				return err
-			}
-
-			serviceData.Tasks = append(serviceData.Tasks, description)
-		}
-
-		services = append(services, serviceData)
+	services, err := ExtractServiceDescription()
+	if err != nil {
+		return err
 	}
 
 	req := StartAppRequest{

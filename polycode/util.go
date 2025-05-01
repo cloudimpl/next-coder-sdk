@@ -142,3 +142,32 @@ func GetMethodDescription(service Service, method string) (MethodDescription, er
 		Input:       inputSchema,
 	}, nil
 }
+
+func ExtractServiceDescription() ([]ServiceDescription, error) {
+	var services []ServiceDescription
+	for srvName, srv := range serviceMap {
+		serviceData := ServiceDescription{
+			Name:  srvName,
+			Tasks: make([]MethodDescription, 0),
+		}
+
+		res, err := srv.ExecuteService(nil, "@definition", nil)
+		if err != nil {
+			return nil, err
+		}
+
+		taskList := res.([]string)
+		for _, taskName := range taskList {
+			description, err := GetMethodDescription(srv, taskName)
+			if err != nil {
+				return nil, err
+			}
+
+			serviceData.Tasks = append(serviceData.Tasks, description)
+		}
+
+		services = append(services, serviceData)
+	}
+
+	return services, nil
+}
