@@ -160,6 +160,40 @@ type PutFileRequest struct {
 	Content string `json:"content"`
 }
 
+type DeleteFileRequest struct {
+	Key string `json:"key"`
+}
+
+type RenameFileRequest struct {
+	OldKey string `json:"oldKey"`
+	NewKey string `json:"newKey"`
+}
+
+type CreateFolderRequest struct {
+	Folder string `json:"folder"`
+}
+
+// ListFilePageRequest carries the usual params plus the ContinuationToken from the previous page.
+type ListFilePageRequest struct {
+	Prefix            string  // optional sub‐folder under partitionKey
+	MaxKeys           int32   // how many items to return
+	ContinuationToken *string // nil for first page; set to NextToken from prior response
+}
+
+// ListFileResponse is one S3 object entry
+type ListFileResponse struct {
+	Key          string // relative to the provided Prefix
+	Size         int64
+	LastModified time.Time
+}
+
+// ListFilePageResponse returns one page of results plus the token for the next page.
+type ListFilePageResponse struct {
+	Files                 []ListFileResponse
+	NextContinuationToken *string
+	IsTruncated           bool
+}
+
 type IncrementCounterRequest struct {
 	Group string `json:"group"`
 	Name  string `json:"name"`
@@ -310,6 +344,24 @@ func (sc *ServiceClient) GetFile(sessionId string, req GetFileRequest) (GetFileR
 // PutFile puts a file into the file store
 func (sc *ServiceClient) PutFile(sessionId string, req PutFileRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/put", req)
+}
+
+func (sc *ServiceClient) DeleteFile(sessionId string, req DeleteFileRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/delete", req)
+}
+
+func (sc *ServiceClient) RenameFile(sessionId string, req RenameFileRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/rename", req)
+}
+
+func (sc *ServiceClient) ListFile(sessionId string, req ListFilePageRequest) (ListFilePageResponse, error) {
+	var res ListFilePageResponse
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/put", req, &res)
+	return res, err
+}
+
+func (sc *ServiceClient) CreateFolder(sessionId string, req CreateFolderRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/create-folder", req)
 }
 
 func (sc *ServiceClient) IncrementCounter(sessionId string, req IncrementCounterRequest) (IncrementCounterResponse, error) {
