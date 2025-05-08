@@ -175,23 +175,23 @@ type CreateFolderRequest struct {
 
 // ListFilePageRequest carries the usual params plus the ContinuationToken from the previous page.
 type ListFilePageRequest struct {
-	Prefix            string  // optional sub‐folder under partitionKey
-	MaxKeys           int32   // how many items to return
-	ContinuationToken *string // nil for first page; set to NextToken from prior response
+	Prefix            string  `json:"prefix"`            // optional sub‐folder under partitionKey
+	MaxKeys           int32   `json:"maxKeys"`           // how many items to return
+	ContinuationToken *string `json:"continuationToken"` // nil for first page; set to NextToken from prior response
 }
 
 // ListFileResponse is one S3 object entry
 type ListFileResponse struct {
-	Key          string // relative to the provided Prefix
-	Size         int64
-	LastModified time.Time
+	Key          string    `json:"key"` // relative to the provided Prefix
+	Size         int64     `json:"size"`
+	LastModified time.Time `json:"lastModified"`
 }
 
 // ListFilePageResponse returns one page of results plus the token for the next page.
 type ListFilePageResponse struct {
-	Files                 []ListFileResponse
-	NextContinuationToken *string
-	IsTruncated           bool
+	Files                 []ListFileResponse `json:"files"`
+	NextContinuationToken *string            `json:"nextContinuationToken"`
+	IsTruncated           bool               `json:"isTruncated"`
 }
 
 type IncrementCounterRequest struct {
