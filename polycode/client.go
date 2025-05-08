@@ -356,7 +356,7 @@ func (sc *ServiceClient) RenameFile(sessionId string, req RenameFileRequest) err
 
 func (sc *ServiceClient) ListFile(sessionId string, req ListFilePageRequest) (ListFilePageResponse, error) {
 	var res ListFilePageResponse
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/put", req, &res)
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/list", req, &res)
 	return res, err
 }
 
