@@ -15,6 +15,7 @@ type BaseContext interface {
 type ServiceContext interface {
 	BaseContext
 	Db() DataStore
+	UnsafeDb() *UnsafeDataStoreBuilder
 	FileStore() FileStore
 }
 
