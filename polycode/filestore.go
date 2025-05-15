@@ -2,6 +2,7 @@ package polycode
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 )
 
@@ -65,6 +66,24 @@ func (d FileStore) Get(path string) (bool, []byte, error) {
 	return true, data, nil
 }
 
+func (d FileStore) GetDownloadLink(path string) (string, error) {
+	req := GetFileRequest{
+		Key: path,
+	}
+
+	res, err := d.client.GetFileDownloadLink(d.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to get file link: %s\n", err.Error())
+		return "", err
+	}
+
+	if res.Link == "" {
+		return "", errors.New("empty link")
+	}
+
+	return res.Link, nil
+}
+
 func (d FileStore) Save(path string, data []byte) error {
 	// Encode the data as base64
 	base64Data := base64.StdEncoding.EncodeToString(data)
@@ -80,6 +99,24 @@ func (d FileStore) Save(path string, data []byte) error {
 	}
 
 	return nil
+}
+
+func (d FileStore) GetUploadLink(path string) (string, error) {
+	req := GetFileRequest{
+		Key: path,
+	}
+
+	res, err := d.client.GetFileUploadLink(d.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to get file link: %s\n", err.Error())
+		return "", err
+	}
+
+	if res.Link == "" {
+		return "", errors.New("empty link")
+	}
+
+	return res.Link, nil
 }
 
 func (d FileStore) Delete(path string) error {

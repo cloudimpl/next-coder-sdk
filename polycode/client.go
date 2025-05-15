@@ -154,6 +154,10 @@ type GetFileResponse struct {
 	Content string `json:"content"`
 }
 
+type GetLinkResponse struct {
+	Link string `json:"link"`
+}
+
 // PutFileRequest represents the JSON structure for put file operations
 type PutFileRequest struct {
 	Key     string `json:"key"`
@@ -341,9 +345,21 @@ func (sc *ServiceClient) GetFile(sessionId string, req GetFileRequest) (GetFileR
 	return res, err
 }
 
+func (sc *ServiceClient) GetFileDownloadLink(sessionId string, req GetFileRequest) (GetLinkResponse, error) {
+	var res GetLinkResponse
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/get-download-link", req, &res)
+	return res, err
+}
+
 // PutFile puts a file into the file store
 func (sc *ServiceClient) PutFile(sessionId string, req PutFileRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/put", req)
+}
+
+func (sc *ServiceClient) GetFileUploadLink(sessionId string, req GetFileRequest) (GetLinkResponse, error) {
+	var res GetLinkResponse
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/get-upload-link", req, &res)
+	return res, err
 }
 
 func (sc *ServiceClient) DeleteFile(sessionId string, req DeleteFileRequest) error {
