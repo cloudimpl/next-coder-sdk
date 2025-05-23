@@ -146,15 +146,25 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 		if r := recover(); r != nil {
 			recovered, ok := r.(error)
 
-			if ok && errors.Is(recovered, ErrTaskStopped) {
-				taskLogger.Info().Msg("service stopped")
-				evt = ValueToServiceComplete(nil)
+			if ok {
+				if errors.Is(recovered, ErrTaskStopped) {
+					taskLogger.Info().Msg("service stopped")
+					evt = ValueToServiceComplete(nil)
+				} else {
+					stackTrace := string(debug.Stack())
+					fmt.Printf("stack trace %s\n", stackTrace)
+
+					taskLogger.Error().Msg(recovered.Error())
+					err2 := ErrInternal.Wrap(recovered)
+					evt = ErrorToServiceComplete(err2)
+				}
 			} else {
 				stackTrace := string(debug.Stack())
 				fmt.Printf("stack trace %s\n", stackTrace)
 
-				err2 := ErrInternal.Wrap(fmt.Errorf("recovered type %T", r))
-				taskLogger.Error().Msg(err2.Error())
+				errorStr := fmt.Sprintf("recoverted %v", r)
+				taskLogger.Error().Msg(errorStr)
+				err2 := ErrInternal.Wrap(fmt.Errorf(errorStr))
 				evt = ErrorToServiceComplete(err2)
 			}
 		}
@@ -235,21 +245,39 @@ func runApi(ctx context.Context, taskLogger Logger, event ApiStartEvent) (evt Ap
 		if r := recover(); r != nil {
 			recovered, ok := r.(error)
 
-			if ok && errors.Is(recovered, ErrTaskStopped) {
-				taskLogger.Info().Msg("api stopped")
-				evt = ApiCompleteEvent{
-					Response: ApiResponse{
-						StatusCode:      202,
-						Header:          make(map[string]string),
-						Body:            "",
-						IsBase64Encoded: false,
-					},
+			if ok {
+				if errors.Is(recovered, ErrTaskStopped) {
+					taskLogger.Info().Msg("api stopped")
+					evt = ApiCompleteEvent{
+						Response: ApiResponse{
+							StatusCode:      202,
+							Header:          make(map[string]string),
+							Body:            "",
+							IsBase64Encoded: false,
+						},
+					}
+				} else {
+					stackTrace := string(debug.Stack())
+					fmt.Printf("stack trace %s\n", stackTrace)
+
+					taskLogger.Error().Msg(recovered.Error())
+					err2 := ErrInternal.Wrap(recovered)
+					evt = ApiCompleteEvent{
+						Response: ApiResponse{
+							StatusCode:      500,
+							Header:          make(map[string]string),
+							Body:            err2.ToJson(),
+							IsBase64Encoded: false,
+						},
+					}
 				}
 			} else {
-				err2 := ErrInternal.Wrap(recovered)
 				stackTrace := string(debug.Stack())
-				taskLogger.Error().Msg(err2.Error())
-				taskLogger.Error().Msg(fmt.Sprintf("stack trace %s", stackTrace))
+				fmt.Printf("stack trace %s\n", stackTrace)
+
+				errorStr := fmt.Sprintf("recoverted %v", r)
+				taskLogger.Error().Msg(errorStr)
+				err2 := ErrInternal.Wrap(fmt.Errorf(errorStr))
 				evt = ApiCompleteEvent{
 					Response: ApiResponse{
 						StatusCode:      500,
