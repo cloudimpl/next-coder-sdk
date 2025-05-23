@@ -42,11 +42,12 @@ type ServiceMeta struct {
 }
 
 type ServiceCompleteEvent struct {
-	IsError bool        `json:"isError"`
-	Output  any         `json:"output"`
-	Error   Error       `json:"error"`
-	Logs    []LogMsg    `json:"logs"`
-	Meta    ServiceMeta `json:"meta"`
+	IsError    bool        `json:"isError"`
+	Output     any         `json:"output"`
+	Error      Error       `json:"error"`
+	Stacktrace Stacktrace  `json:"stacktrace"`
+	Logs       []LogMsg    `json:"logs"`
+	Meta       ServiceMeta `json:"meta"`
 }
 
 type ApiStartEvent struct {

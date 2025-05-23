@@ -1,7 +1,11 @@
 package polycode
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
+	"io"
+	"strings"
 )
 
 var ErrBadRequest = DefineError("polycode.client", 2, "bad request")
@@ -22,6 +26,56 @@ type Error struct {
 	Args     []any
 	CauseBy  string
 	CanRetry bool
+}
+
+type Stacktrace struct {
+	Stacktrace   string `json:"stacktrace"`
+	IsAvailable  bool   `json:"isAvailable"`
+	IsCompressed bool   `json:"isCompressed"`
+}
+
+// Compress compresses the stacktrace string using gzip.
+func (s *Stacktrace) Compress() error {
+	if s.IsCompressed || !s.IsAvailable || s.Stacktrace == "" {
+		return nil
+	}
+
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	_, err := gz.Write([]byte(s.Stacktrace))
+	if err != nil {
+		return err
+	}
+	if err := gz.Close(); err != nil {
+		return err
+	}
+
+	s.Stacktrace = buf.String() // convert []byte to string for JSON compatibility
+	s.IsCompressed = true
+	return nil
+}
+
+// Extract decompresses the stacktrace if it is compressed.
+func (s *Stacktrace) Extract() error {
+	if !s.IsCompressed || s.Stacktrace == "" {
+		return nil
+	}
+
+	buf := strings.NewReader(s.Stacktrace)
+	gz, err := gzip.NewReader(buf)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	decoded, err := io.ReadAll(gz)
+	if err != nil {
+		return err
+	}
+
+	s.Stacktrace = string(decoded)
+	s.IsCompressed = false
+	return nil
 }
 
 func (t Error) Wrap(err error) Error {

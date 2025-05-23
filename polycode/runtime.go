@@ -156,7 +156,7 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 
 					taskLogger.Error().Msg(recovered.Error())
 					err2 := ErrInternal.Wrap(recovered)
-					evt = ErrorToServiceComplete(err2)
+					evt = ErrorToServiceComplete(err2, stackTrace)
 				}
 			} else {
 				stackTrace := string(debug.Stack())
@@ -165,7 +165,7 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 				errorStr := fmt.Sprintf("recoverted %v", r)
 				taskLogger.Error().Msg(errorStr)
 				err2 := ErrInternal.Wrap(fmt.Errorf(errorStr))
-				evt = ErrorToServiceComplete(err2)
+				evt = ErrorToServiceComplete(err2, stackTrace)
 			}
 		}
 	}()
@@ -174,7 +174,7 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 	if err != nil {
 		err2 := ErrServiceExecError.Wrap(err)
 		taskLogger.Error().Msg(err2.Error())
-		return ErrorToServiceComplete(err2)
+		return ErrorToServiceComplete(err2, "")
 	}
 
 	meta := ServiceMeta{
@@ -185,21 +185,21 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 	if err != nil {
 		err2 := ErrServiceExecError.Wrap(err)
 		taskLogger.Error().Msg(err2.Error())
-		return ErrorToServiceComplete(err2)
+		return ErrorToServiceComplete(err2, "")
 	}
 
 	err = ConvertType(event.Input, inputObj)
 	if err != nil {
 		err2 := ErrBadRequest.Wrap(err)
 		taskLogger.Error().Msg(err2.Error())
-		return ErrorToServiceComplete(err2)
+		return ErrorToServiceComplete(err2, "")
 	}
 
 	err = currentValidator.Validate(inputObj)
 	if err != nil {
 		err2 := ErrBadRequest.Wrap(err)
 		taskLogger.Error().Msg(err2.Error())
-		return ErrorToServiceComplete(err2)
+		return ErrorToServiceComplete(err2, "")
 	}
 
 	ctxImpl := &ContextImpl{
@@ -227,7 +227,7 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 	if err != nil {
 		err2 := ErrServiceExecError.Wrap(err)
 		taskLogger.Error().Msg(err2.Error())
-		return ErrorToServiceComplete(err2)
+		return ErrorToServiceComplete(err2, "")
 	}
 
 	taskLogger.Info().Msg("service completed")
@@ -330,11 +330,22 @@ func ValueToServiceComplete(output any) ServiceCompleteEvent {
 	}
 }
 
-func ErrorToServiceComplete(err Error) ServiceCompleteEvent {
+func ErrorToServiceComplete(err Error, stacktraceStr string) ServiceCompleteEvent {
+	var stacktrace Stacktrace
+	if stacktraceStr != "" {
+		stacktrace = Stacktrace{
+			Stacktrace:   stacktraceStr,
+			IsAvailable:  true,
+			IsCompressed: false,
+		}
+		_ = stacktrace.Compress()
+	}
+
 	return ServiceCompleteEvent{
-		Output:  nil,
-		IsError: true,
-		Error:   err,
+		Output:     nil,
+		IsError:    true,
+		Error:      err,
+		Stacktrace: stacktrace,
 	}
 }
 
