@@ -52,7 +52,7 @@ func invokeServiceHandler(c *gin.Context) {
 
 	taskLogger.Info().Msg("service task started")
 	if err := c.ShouldBindJSON(&input); err != nil {
-		output = ErrorToServiceComplete(ErrInternal.Wrap(err))
+		output = ErrorToServiceComplete(ErrInternal.Wrap(err), "")
 		taskLogger.Error().Msg(fmt.Sprintf("service task failed %s", err.Error()))
 	} else {
 		output = runService(c, taskLogger, input)
