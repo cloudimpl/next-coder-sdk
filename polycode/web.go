@@ -152,7 +152,7 @@ func ConvertToHttpRequest(ctx context.Context, apiReq ApiRequest) (*http.Request
 	for key, value := range apiReq.Header {
 		req.Header.Set(key, value)
 	}
-	req.Host = req.Header.Get("host")
+	req.Host = apiReq.Host
 
 	return req, nil
 }

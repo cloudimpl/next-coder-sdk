@@ -68,6 +68,7 @@ type ErrorEvent struct {
 
 type ApiRequest struct {
 	Id              string            `json:"id"`
+	Host            string            `json:"host"`
 	Method          string            `json:"method"`
 	Path            string            `json:"path"`
 	Query           map[string]string `json:"query"`
