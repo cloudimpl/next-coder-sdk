@@ -117,6 +117,7 @@ type ContextMeta struct {
 	TaskGroup    string `json:"taskGroup"`
 	TaskName     string `json:"taskName"`
 	TaskId       string `json:"taskId"`
+	ParentId     string `json:"parentId"`
 	TraceId      string `json:"traceId"`
 	InputId      string `json:"inputId"`
 }

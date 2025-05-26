@@ -2,6 +2,7 @@ package polycode
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -29,6 +30,9 @@ type WorkflowContext interface {
 	ControllerEx(envId string, controller string) RemoteController
 	UnsafeDb() *UnsafeDataStoreBuilder
 	Memo(getter func() (any, error)) Response
+	SignalAwait(signalName string) Response
+	SignalEmitData(taskId string, signalName string, data any) error
+	SignalEmitError(taskId string, signalName string, err Error) error
 }
 
 type ApiContext interface {
@@ -132,6 +136,51 @@ func (s ContextImpl) Logger() Logger {
 
 func (s ContextImpl) Acknowledge() error {
 	return s.serviceClient.Acknowledge(s.sessionId)
+}
+
+func (s ContextImpl) SignalAwait(signalName string) Response {
+	req := SignalWaitRequest{
+		SignalName: signalName,
+	}
+
+	output, err := s.serviceClient.WaitForSignal(s.sessionId, req)
+	if err != nil {
+		fmt.Printf("client: signal await error: %v\n", err)
+		return Response{
+			output:  nil,
+			isError: true,
+			error:   ErrTaskExecError.Wrap(err),
+		}
+	}
+
+	fmt.Printf("client: signal await output: %v\n", output)
+	return Response{
+		output:  output.Output,
+		isError: output.IsError,
+		error:   output.Error,
+	}
+}
+
+func (s ContextImpl) SignalEmitData(taskId string, signalName string, data any) error {
+	req := SignalEmitRequest{
+		TaskId:     taskId,
+		SignalName: signalName,
+		Output:     data,
+		IsError:    false,
+	}
+
+	return s.serviceClient.EmitSignal(s.sessionId, req)
+}
+
+func (s ContextImpl) SignalEmitError(taskId string, signalName string, err Error) error {
+	req := SignalEmitRequest{
+		TaskId:     taskId,
+		SignalName: signalName,
+		IsError:    true,
+		Error:      err,
+	}
+
+	return s.serviceClient.EmitSignal(s.sessionId, req)
 }
 
 func (s ContextImpl) Counter(group string, name string, ttl int64) Counter {

@@ -198,6 +198,25 @@ type ListFilePageResponse struct {
 	IsTruncated           bool               `json:"isTruncated"`
 }
 
+type SignalEmitRequest struct {
+	TaskId     string `json:"taskId"`
+	SignalName string `json:"signalName"`
+	Output     any    `json:"output"`
+	IsError    bool   `json:"isError"`
+	Error      Error  `json:"error"`
+}
+
+type SignalWaitRequest struct {
+	SignalName string `json:"signalName"`
+}
+
+type SignalWaitResponse struct {
+	IsAsync bool  `json:"isAsync"`
+	Output  any   `json:"output"`
+	IsError bool  `json:"isError"`
+	Error   Error `json:"error"`
+}
+
 type IncrementCounterRequest struct {
 	Group string `json:"group"`
 	Name  string `json:"name"`
@@ -378,6 +397,16 @@ func (sc *ServiceClient) ListFile(sessionId string, req ListFilePageRequest) (Li
 
 func (sc *ServiceClient) CreateFolder(sessionId string, req CreateFolderRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/create-folder", req)
+}
+
+func (sc *ServiceClient) EmitSignal(sessionId string, req SignalEmitRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/signal/emit", req)
+}
+
+func (sc *ServiceClient) WaitForSignal(sessionId string, req SignalWaitRequest) (SignalWaitResponse, error) {
+	res := SignalWaitResponse{}
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/signal/await", req, &res)
+	return res, err
 }
 
 func (sc *ServiceClient) IncrementCounter(sessionId string, req IncrementCounterRequest) (IncrementCounterResponse, error) {
