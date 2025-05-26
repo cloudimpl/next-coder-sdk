@@ -31,8 +31,8 @@ type WorkflowContext interface {
 	UnsafeDb() *UnsafeDataStoreBuilder
 	Memo(getter func() (any, error)) Response
 	SignalAwait(signalName string) Response
-	SignalEmitData(taskId string, signalName string, data any) error
-	SignalEmitError(taskId string, signalName string, err Error) error
+	SignalResumeSuccess(taskId string, signalName string, data any) error
+	SignalResumeError(taskId string, signalName string, err Error) error
 }
 
 type ApiContext interface {
@@ -161,7 +161,7 @@ func (s ContextImpl) SignalAwait(signalName string) Response {
 	}
 }
 
-func (s ContextImpl) SignalEmitData(taskId string, signalName string, data any) error {
+func (s ContextImpl) SignalResumeSuccess(taskId string, signalName string, data any) error {
 	req := SignalEmitRequest{
 		TaskId:     taskId,
 		SignalName: signalName,
@@ -172,7 +172,7 @@ func (s ContextImpl) SignalEmitData(taskId string, signalName string, data any) 
 	return s.serviceClient.EmitSignal(s.sessionId, req)
 }
 
-func (s ContextImpl) SignalEmitError(taskId string, signalName string, err Error) error {
+func (s ContextImpl) SignalResumeError(taskId string, signalName string, err Error) error {
 	req := SignalEmitRequest{
 		TaskId:     taskId,
 		SignalName: signalName,
