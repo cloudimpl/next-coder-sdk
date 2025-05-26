@@ -34,25 +34,25 @@ type Query struct {
 	limit      int
 }
 
-func (q Query) StartFrom(token PageToken) (Query, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (q Query) Index(name string) Query {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (q Query) Project(paths ...string) Query {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (q Query) ProjectExpr(expr string, args ...interface{}) Query {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q Query) StartFrom(token PageToken) (Query, error) {
+//	//TODO implement me
+//	panic("implement me")
+//}
+//
+//func (q Query) Index(name string) Query {
+//	//TODO implement me
+//	panic("implement me")
+//}
+//
+//func (q Query) Project(paths ...string) Query {
+//	//TODO implement me
+//	panic("implement me")
+//}
+//
+//func (q Query) ProjectExpr(expr string, args ...interface{}) Query {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
 func (q Query) Filter(expr string, args ...interface{}) Query {
 	q.filter = expr
@@ -60,30 +60,30 @@ func (q Query) Filter(expr string, args ...interface{}) Query {
 	return q
 }
 
-func (q Query) Consistent(on bool) Query {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q Query) Consistent(on bool) Query {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
 func (q Query) Limit(limit int) Query {
 	q.limit = limit
 	return q
 }
 
-func (q Query) SearchLimit(limit int) Query {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q Query) SearchLimit(limit int) Query {
+//	//TODO implement me
+//	panic("implement me")
+//}
+//
+//func (q Query) RequestLimit(limit int) Query {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
-func (q Query) RequestLimit(limit int) Query {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (q Query) Order(order Order) Query {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q Query) Order(order Order) Query {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
 func (q Query) One(ctx context.Context, ret interface{}) (bool, error) {
 	req := QueryRequest{
@@ -114,10 +114,10 @@ func (q Query) One(ctx context.Context, ret interface{}) (bool, error) {
 	return true, nil
 }
 
-func (q Query) Count(ctx context.Context) (int, error) {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q Query) Count(ctx context.Context) (int, error) {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
 func (q Query) All(ctx context.Context, ret interface{}) error {
 	req := QueryRequest{
@@ -144,15 +144,15 @@ func (q Query) All(ctx context.Context, ret interface{}) error {
 	return nil
 }
 
-func (q Query) AllWithNextToken(ctx context.Context, ret interface{}) (PageToken, error) {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q Query) AllWithNextToken(ctx context.Context, ret interface{}) (PageToken, error) {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
-func (q Query) Iter() PagingIter {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q Query) Iter() PagingIter {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
 type UnsafeQuery struct {
 	tenantId     string
@@ -163,25 +163,25 @@ type UnsafeQuery struct {
 	limit        int
 }
 
-func (q UnsafeQuery) StartFrom(token PageToken) (UnsafeQuery, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (q UnsafeQuery) Index(name string) UnsafeQuery {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (q UnsafeQuery) Project(paths ...string) UnsafeQuery {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (q UnsafeQuery) ProjectExpr(expr string, args ...interface{}) UnsafeQuery {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q UnsafeQuery) StartFrom(token PageToken) (UnsafeQuery, error) {
+//	//TODO implement me
+//	panic("implement me")
+//}
+//
+//func (q UnsafeQuery) Index(name string) UnsafeQuery {
+//	//TODO implement me
+//	panic("implement me")
+//}
+//
+//func (q UnsafeQuery) Project(paths ...string) UnsafeQuery {
+//	//TODO implement me
+//	panic("implement me")
+//}
+//
+//func (q UnsafeQuery) ProjectExpr(expr string, args ...interface{}) UnsafeQuery {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
 func (q UnsafeQuery) Filter(expr string, args ...interface{}) UnsafeQuery {
 	q.filter = expr
@@ -189,30 +189,30 @@ func (q UnsafeQuery) Filter(expr string, args ...interface{}) UnsafeQuery {
 	return q
 }
 
-func (q UnsafeQuery) Consistent(on bool) UnsafeQuery {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q UnsafeQuery) Consistent(on bool) UnsafeQuery {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
 func (q UnsafeQuery) Limit(limit int) UnsafeQuery {
 	q.limit = limit
 	return q
 }
 
-func (q UnsafeQuery) SearchLimit(limit int) UnsafeQuery {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (q UnsafeQuery) RequestLimit(limit int) UnsafeQuery {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (q UnsafeQuery) Order(order Order) UnsafeQuery {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q UnsafeQuery) SearchLimit(limit int) UnsafeQuery {
+//	//TODO implement me
+//	panic("implement me")
+//}
+//
+//func (q UnsafeQuery) RequestLimit(limit int) UnsafeQuery {
+//	//TODO implement me
+//	panic("implement me")
+//}
+//
+//func (q UnsafeQuery) Order(order Order) UnsafeQuery {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
 func (q UnsafeQuery) One(ctx context.Context, ret interface{}) (bool, error) {
 	req := UnsafeQueryRequest{
@@ -247,10 +247,10 @@ func (q UnsafeQuery) One(ctx context.Context, ret interface{}) (bool, error) {
 	return true, nil
 }
 
-func (q UnsafeQuery) Count(ctx context.Context) (int, error) {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q UnsafeQuery) Count(ctx context.Context) (int, error) {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
 func (q UnsafeQuery) All(ctx context.Context, ret interface{}) error {
 	req := UnsafeQueryRequest{
@@ -281,12 +281,12 @@ func (q UnsafeQuery) All(ctx context.Context, ret interface{}) error {
 	return nil
 }
 
-func (q UnsafeQuery) AllWithNextToken(ctx context.Context, ret interface{}) (PageToken, error) {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q UnsafeQuery) AllWithNextToken(ctx context.Context, ret interface{}) (PageToken, error) {
+//	//TODO implement me
+//	panic("implement me")
+//}
 
-func (q UnsafeQuery) Iter() PagingIter {
-	//TODO implement me
-	panic("implement me")
-}
+//func (q UnsafeQuery) Iter() PagingIter {
+//	//TODO implement me
+//	panic("implement me")
+//}
