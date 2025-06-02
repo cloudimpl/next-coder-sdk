@@ -3,6 +3,7 @@ module github.com/cloudimpl/next-coder-sdk
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/invopop/jsonschema v0.13.0
+	gopkg.in/ini.v1 v1.67.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
