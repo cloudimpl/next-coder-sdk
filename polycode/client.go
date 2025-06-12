@@ -206,6 +206,11 @@ type SignalEmitRequest struct {
 	Error      Error  `json:"error"`
 }
 
+type RealtimeEventEmitRequest struct {
+	Channel string `json:"channel"`
+	Input   any    `json:"input"`
+}
+
 type SignalWaitRequest struct {
 	SignalName string `json:"signalName"`
 }
@@ -407,6 +412,10 @@ func (sc *ServiceClient) WaitForSignal(sessionId string, req SignalWaitRequest) 
 	res := SignalWaitResponse{}
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/signal/await", req, &res)
 	return res, err
+}
+
+func (sc *ServiceClient) EmitRealtimeEvent(sessionId string, req RealtimeEventEmitRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/realtime/event/emit", req)
 }
 
 func (sc *ServiceClient) IncrementCounter(sessionId string, req IncrementCounterRequest) (IncrementCounterResponse, error) {

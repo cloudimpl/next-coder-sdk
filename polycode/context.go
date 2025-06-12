@@ -33,6 +33,7 @@ type WorkflowContext interface {
 	SignalAwait(signalName string) Response
 	SignalResumeSuccess(taskId string, signalName string, data any) error
 	SignalResumeError(taskId string, signalName string, err Error) error
+	EmitRealtimeEvent(channel string, data any) error
 }
 
 type ApiContext interface {
@@ -181,6 +182,15 @@ func (s ContextImpl) SignalResumeError(taskId string, signalName string, err Err
 	}
 
 	return s.serviceClient.EmitSignal(s.sessionId, req)
+}
+
+func (s ContextImpl) EmitRealtimeEvent(channel string, data any) error {
+	req := RealtimeEventEmitRequest{
+		Channel: channel,
+		Input:   data,
+	}
+
+	return s.serviceClient.EmitRealtimeEvent(s.sessionId, req)
 }
 
 func (s ContextImpl) Counter(group string, name string, ttl int64) Counter {
