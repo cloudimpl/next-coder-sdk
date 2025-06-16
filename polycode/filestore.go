@@ -101,6 +101,21 @@ func (d FileStore) Save(path string, data []byte) error {
 	return nil
 }
 
+func (d FileStore) Upload(path string, filePath string) error {
+	req := PutFileRequest{
+		Key:      path,
+		FilePath: filePath,
+	}
+
+	err := d.client.PutFile(d.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to put file: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
 func (d FileStore) GetUploadLink(path string) (string, error) {
 	req := GetFileRequest{
 		Key: path,
@@ -193,6 +208,21 @@ func (f Folder) Save(name string, data []byte) error {
 	req := PutFileRequest{
 		Key:     f.name + "/" + name,
 		Content: base64Data,
+	}
+
+	err := f.client.PutFile(f.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to put file: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (f Folder) Upload(name string, filePath string) error {
+	req := PutFileRequest{
+		Key:      f.name + "/" + name,
+		FilePath: filePath,
 	}
 
 	err := f.client.PutFile(f.sessionId, req)

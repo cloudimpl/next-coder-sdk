@@ -160,8 +160,9 @@ type GetLinkResponse struct {
 
 // PutFileRequest represents the JSON structure for put file operations
 type PutFileRequest struct {
-	Key     string `json:"key"`
-	Content string `json:"content"`
+	Key      string `json:"key"`
+	Content  string `json:"content"`
+	FilePath string `json:"filePath"`
 }
 
 type DeleteFileRequest struct {
