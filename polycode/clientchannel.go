@@ -1,12 +1,12 @@
 package polycode
 
-type RealtimeChannel struct {
+type ClientChannel struct {
 	name          string
 	sessionId     string
 	serviceClient *ServiceClient
 }
 
-func (r RealtimeChannel) Emit(data any) error {
+func (r ClientChannel) Emit(data any) error {
 	req := RealtimeEventEmitRequest{
 		Channel: r.name,
 		Input:   data,

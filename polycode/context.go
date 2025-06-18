@@ -15,13 +15,14 @@ type BaseContext interface {
 	AppConfig() AppConfig
 	AuthContext() AuthContext
 	Logger() Logger
+	ParamStore() ParamStore
+	UnsafeDb() *UnsafeDataStoreBuilder
+	FileStore() FileStore
 }
 
 type ServiceContext interface {
 	BaseContext
 	Db() DataStore
-	UnsafeDb() *UnsafeDataStoreBuilder
-	FileStore() FileStore
 }
 
 type WorkflowContext interface {
@@ -32,10 +33,9 @@ type WorkflowContext interface {
 	AppEx(envId string, appName string) RemoteApp
 	Controller(controller string) RemoteController
 	ControllerEx(envId string, controller string) RemoteController
-	UnsafeDb() *UnsafeDataStoreBuilder
 	Memo(getter func() (any, error)) Response
 	Signal(signalName string) Signal
-	RealtimeChannel(channelName string) RealtimeChannel
+	ClientChannel(channelName string) ClientChannel
 }
 
 type ApiContext interface {
@@ -89,6 +89,12 @@ func (s ContextImpl) Value(key any) any {
 
 func (s ContextImpl) Db() DataStore {
 	return s.dataStore
+}
+
+func (s ContextImpl) ParamStore() ParamStore {
+	return ParamStore{
+		collection: s.Db().Collection("config"),
+	}
 }
 
 func (s ContextImpl) FileStore() FileStore {
@@ -150,8 +156,8 @@ func (s ContextImpl) Signal(signalName string) Signal {
 	}
 }
 
-func (s ContextImpl) RealtimeChannel(channelName string) RealtimeChannel {
-	return RealtimeChannel{
+func (s ContextImpl) ClientChannel(channelName string) ClientChannel {
+	return ClientChannel{
 		name:          channelName,
 		sessionId:     s.sessionId,
 		serviceClient: s.serviceClient,
