@@ -211,6 +211,7 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 		serviceClient: serviceClient,
 		logger:        taskLogger,
 		meta:          event.Meta,
+		authCtx:       event.AuthContext,
 	}
 
 	var ret any
@@ -305,6 +306,7 @@ func runApi(ctx context.Context, taskLogger Logger, event ApiStartEvent) (evt Ap
 		serviceClient: serviceClient,
 		logger:        taskLogger,
 		meta:          event.Meta,
+		authCtx:       event.AuthContext,
 	}
 
 	newCtx := context.WithValue(ctx, "polycode.context", ctxImpl)

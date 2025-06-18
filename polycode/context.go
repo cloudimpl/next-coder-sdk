@@ -2,14 +2,18 @@ package polycode
 
 import (
 	"context"
-	"fmt"
 	"time"
 )
+
+type AuthContext struct {
+	claims map[string]interface{}
+}
 
 type BaseContext interface {
 	context.Context
 	Meta() ContextMeta
 	AppConfig() AppConfig
+	AuthContext() AuthContext
 	Logger() Logger
 }
 
@@ -30,10 +34,8 @@ type WorkflowContext interface {
 	ControllerEx(envId string, controller string) RemoteController
 	UnsafeDb() *UnsafeDataStoreBuilder
 	Memo(getter func() (any, error)) Response
-	SignalAwait(signalName string) Response
-	SignalResumeSuccess(taskId string, signalName string, data any) error
-	SignalResumeError(taskId string, signalName string, err Error) error
-	EmitRealtimeEvent(channel string, data any) error
+	Signal(signalName string) Signal
+	RealtimeChannel(channelName string) RealtimeChannel
 }
 
 type ApiContext interface {
@@ -54,10 +56,15 @@ type ContextImpl struct {
 	serviceClient *ServiceClient
 	logger        Logger
 	meta          ContextMeta
+	authCtx       AuthContext
 }
 
 func (s ContextImpl) Meta() ContextMeta {
 	return s.meta
+}
+
+func (s ContextImpl) AuthContext() AuthContext {
+	return s.authCtx
 }
 
 func (s ContextImpl) AppConfig() AppConfig {
@@ -135,62 +142,20 @@ func (s ContextImpl) Logger() Logger {
 	return s.logger
 }
 
-func (s ContextImpl) Acknowledge() error {
-	return s.serviceClient.Acknowledge(s.sessionId)
-}
-
-func (s ContextImpl) SignalAwait(signalName string) Response {
-	req := SignalWaitRequest{
-		SignalName: signalName,
-	}
-
-	output, err := s.serviceClient.WaitForSignal(s.sessionId, req)
-	if err != nil {
-		fmt.Printf("client: signal await error: %v\n", err)
-		return Response{
-			output:  nil,
-			isError: true,
-			error:   ErrTaskExecError.Wrap(err),
-		}
-	}
-
-	fmt.Printf("client: signal await output: %v\n", output)
-	return Response{
-		output:  output.Output,
-		isError: output.IsError,
-		error:   output.Error,
+func (s ContextImpl) Signal(signalName string) Signal {
+	return Signal{
+		name:          signalName,
+		sessionId:     s.sessionId,
+		serviceClient: s.serviceClient,
 	}
 }
 
-func (s ContextImpl) SignalResumeSuccess(taskId string, signalName string, data any) error {
-	req := SignalEmitRequest{
-		TaskId:     taskId,
-		SignalName: signalName,
-		Output:     data,
-		IsError:    false,
+func (s ContextImpl) RealtimeChannel(channelName string) RealtimeChannel {
+	return RealtimeChannel{
+		name:          channelName,
+		sessionId:     s.sessionId,
+		serviceClient: s.serviceClient,
 	}
-
-	return s.serviceClient.EmitSignal(s.sessionId, req)
-}
-
-func (s ContextImpl) SignalResumeError(taskId string, signalName string, err Error) error {
-	req := SignalEmitRequest{
-		TaskId:     taskId,
-		SignalName: signalName,
-		IsError:    true,
-		Error:      err,
-	}
-
-	return s.serviceClient.EmitSignal(s.sessionId, req)
-}
-
-func (s ContextImpl) EmitRealtimeEvent(channel string, data any) error {
-	req := RealtimeEventEmitRequest{
-		Channel: channel,
-		Input:   data,
-	}
-
-	return s.serviceClient.EmitRealtimeEvent(s.sessionId, req)
 }
 
 func (s ContextImpl) Counter(group string, name string, ttl int64) Counter {
