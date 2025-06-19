@@ -6,7 +6,7 @@ import (
 )
 
 type AuthContext struct {
-	claims map[string]interface{}
+	Claims map[string]interface{} `json:"claims"`
 }
 
 type BaseContext interface {
