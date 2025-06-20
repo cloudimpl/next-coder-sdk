@@ -105,15 +105,8 @@ type MethodDescription struct {
 }
 
 type ClientEnv struct {
-	OrgId               string `json:"orgId"`
-	EnvId               string `json:"envId"`
-	AppName             string `json:"appName"`
-	AppPort             uint   `json:"appPort"`
-	WorkflowTableName   string `json:"workflowTableName"`
-	LogTableName        string `json:"logTableName"`
-	FileStorePath       string `json:"fileStorePath"`
-	DataTableName       string `json:"dataTableName"`
-	GlobalDataTableName string `json:"globalDataTableName"`
+	AppName string `json:"appName"`
+	AppPort uint   `json:"appPort"`
 }
 
 type ContextMeta struct {

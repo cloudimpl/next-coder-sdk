@@ -3,7 +3,6 @@ package polycode
 import (
 	"fmt"
 	"gopkg.in/ini.v1"
-	"log"
 	"os"
 )
 
@@ -44,19 +43,9 @@ func initClientEnv() {
 
 	loadIni()
 
-	orgId := os.Getenv("polycode_ORG_ID")
-	if orgId == "" {
-		log.Fatal("sidecar: org id not provided")
-	}
-
-	envId := os.Getenv("polycode_ENV_ID")
-	if envId == "" {
-		log.Fatal("sidecar: env id not provided")
-	}
-
 	appName := os.Getenv("polycode_APP_NAME")
 	if appName == "" {
-		log.Fatal("sidecar: app name not provided")
+		appName = "overridden"
 	}
 
 	appPortStr := os.Getenv("polycode_APP_PORT")
@@ -71,15 +60,8 @@ func initClientEnv() {
 	}
 
 	clientEnv = &ClientEnv{
-		OrgId:               os.Getenv("polycode_ORG_ID"),
-		EnvId:               os.Getenv("polycode_ENV_ID"),
-		AppName:             os.Getenv("polycode_APP_NAME"),
-		AppPort:             appPort,
-		WorkflowTableName:   "polycode-workflows",
-		LogTableName:        "polycode-logs",
-		DataTableName:       fmt.Sprintf("polycode-%s-%s-data", envId, appName),
-		GlobalDataTableName: fmt.Sprintf("polycode-%s-data", envId),
-		FileStorePath:       fmt.Sprintf("polycode-%s-%s-files", orgId, envId),
+		AppName: os.Getenv("polycode_APP_NAME"),
+		AppPort: appPort,
 	}
 }
 
