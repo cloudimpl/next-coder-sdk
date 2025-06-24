@@ -2,6 +2,7 @@ package polycode
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -213,6 +214,12 @@ func runService(ctx context.Context, taskLogger Logger, event ServiceStartEvent)
 		meta:          event.Meta,
 		authCtx:       event.AuthContext,
 	}
+
+	metaJson, err := json.Marshal(ctxImpl.meta)
+	if err != nil {
+		fmt.Println("Error marshalling meta", err.Error())
+	}
+	fmt.Printf("meta: %s\n", metaJson)
 
 	var ret any
 	if service.IsWorkflow(event.Method) {
