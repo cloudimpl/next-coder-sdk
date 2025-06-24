@@ -169,7 +169,7 @@ type RemoteAgent struct {
 func (r RemoteAgent) Call(options TaskOptions, input AgentInput) Response {
 	req := ExecServiceRequest{
 		EnvId:        r.envId,
-		Service:      "agent_service",
+		Service:      "agent-service",
 		TenantId:     r.tenantId,
 		PartitionKey: r.agent + ":" + input.SessionKey,
 		Method:       "CallAgent",
