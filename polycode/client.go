@@ -30,14 +30,15 @@ type StartAppRequest struct {
 }
 
 type ExecServiceRequest struct {
-	EnvId         string      `json:"envId"`
-	Service       string      `json:"service"`
-	TenantId      string      `json:"tenantId"`
-	PartitionKey  string      `json:"partitionKey"`
-	Method        string      `json:"method"`
-	Options       TaskOptions `json:"options"`
-	FireAndForget bool        `json:"fireAndForget"`
-	Input         any         `json:"input"`
+	EnvId         string            `json:"envId"`
+	Service       string            `json:"service"`
+	TenantId      string            `json:"tenantId"`
+	PartitionKey  string            `json:"partitionKey"`
+	Method        string            `json:"method"`
+	Options       TaskOptions       `json:"options"`
+	FireAndForget bool              `json:"fireAndForget"`
+	Headers       map[string]string `json:"headers"`
+	Input         any               `json:"input"`
 }
 
 type ExecAppRequest struct {

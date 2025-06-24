@@ -28,7 +28,9 @@ type ServiceContext interface {
 type WorkflowContext interface {
 	BaseContext
 	Service(service string) *RemoteServiceBuilder
+	Agent(agent string) *RemoteAgentBuilder
 	ServiceEx(envId string, service string) *RemoteServiceBuilder
+	AgentEx(envId string, agent string) *RemoteAgentBuilder
 	App(appName string) RemoteApp
 	AppEx(envId string, appName string) RemoteApp
 	Controller(controller string) RemoteController
@@ -107,9 +109,21 @@ func (s ContextImpl) Service(service string) *RemoteServiceBuilder {
 	}
 }
 
+func (s ContextImpl) Agent(agent string) *RemoteAgentBuilder {
+	return &RemoteAgentBuilder{
+		ctx: s.ctx, sessionId: s.sessionId, agent: agent, serviceClient: s.serviceClient,
+	}
+}
+
 func (s ContextImpl) ServiceEx(envId string, service string) *RemoteServiceBuilder {
 	return &RemoteServiceBuilder{
 		ctx: s.ctx, sessionId: s.sessionId, envId: envId, service: service, serviceClient: s.serviceClient,
+	}
+}
+
+func (s ContextImpl) AgentEx(envId string, agent string) *RemoteAgentBuilder {
+	return &RemoteAgentBuilder{
+		ctx: s.ctx, sessionId: s.sessionId, envId: envId, agent: agent, serviceClient: s.serviceClient,
 	}
 }
 

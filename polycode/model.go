@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+const AgentNameHeader = "X-Sidecar-Agent-Name"
+
 type BackoffStrategy struct {
 	InitialInterval time.Duration `json:"initialInterval"`
 	MaxInterval     time.Duration `json:"maxInterval"`
@@ -136,3 +138,19 @@ type CallerContextMeta struct {
 	TaskName     string `json:"taskName"`
 	TaskId       string `json:"taskId"`
 }
+
+type AgentInput struct {
+	SessionKey string            `json:"sessionKey"`
+	LLMInput   LLMInput          `json:"llmInput"`
+	Labels     map[string]string `json:"labels"`
+}
+
+type LLMInput struct {
+	Text string `json:"text"`
+	//Files []File `json:"files"`
+}
+
+//type File struct {
+//	Data []byte `json:"data"`
+//	Path string `json:"path"`
+//}
