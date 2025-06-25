@@ -143,6 +143,7 @@ type AgentInput struct {
 	SessionKey string            `json:"sessionKey"`
 	LLMInput   LLMInput          `json:"llmInput"`
 	Labels     map[string]string `json:"labels"`
+	ChannelId  string            `json:"channelId"`
 }
 
 type LLMInput struct {
