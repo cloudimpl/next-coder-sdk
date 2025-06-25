@@ -38,6 +38,7 @@ type WorkflowContext interface {
 	Memo(getter func() (any, error)) Response
 	Signal(signalName string) Signal
 	ClientChannel(channelName string) ClientChannel
+	Lock(key string) Lock
 }
 
 type ApiContext interface {
@@ -175,6 +176,14 @@ func (s ContextImpl) ClientChannel(channelName string) ClientChannel {
 		name:          channelName,
 		sessionId:     s.sessionId,
 		serviceClient: s.serviceClient,
+	}
+}
+
+func (s ContextImpl) Lock(key string) Lock {
+	return Lock{
+		client:    s.serviceClient,
+		sessionId: s.sessionId,
+		key:       key,
 	}
 }
 

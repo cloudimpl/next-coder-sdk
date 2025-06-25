@@ -232,6 +232,15 @@ type IncrementCounterRequest struct {
 	TTL   int64  `json:"TTL"`
 }
 
+type AcquireLockRequest struct {
+	Key string `json:"key"`
+	TTL int64  `json:"TTL"`
+}
+
+type ReleaseLockRequest struct {
+	Key string `json:"key"`
+}
+
 type IncrementCounterResponse struct {
 	Value       uint64 `json:"value"`
 	Incremented bool   `json:"incremented"`
@@ -418,6 +427,14 @@ func (sc *ServiceClient) WaitForSignal(sessionId string, req SignalWaitRequest) 
 
 func (sc *ServiceClient) EmitRealtimeEvent(sessionId string, req RealtimeEventEmitRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/realtime/event/emit", req)
+}
+
+func (sc *ServiceClient) AcquireLock(sessionId string, req AcquireLockRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/lock/acquire", req)
+}
+
+func (sc *ServiceClient) ReleaseLock(sessionId string, req ReleaseLockRequest) error {
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/lock/release", req)
 }
 
 func (sc *ServiceClient) IncrementCounter(sessionId string, req IncrementCounterRequest) (IncrementCounterResponse, error) {
