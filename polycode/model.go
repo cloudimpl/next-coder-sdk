@@ -141,6 +141,7 @@ type CallerContextMeta struct {
 
 type AgentInput struct {
 	SessionKey string            `json:"sessionKey"`
+	TaskId     int64             `json:"taskId"`
 	LLMInput   LLMInput          `json:"llmInput"`
 	Labels     map[string]string `json:"labels"`
 	ChannelId  string            `json:"channelId"`
