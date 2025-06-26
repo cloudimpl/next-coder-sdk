@@ -150,6 +150,11 @@ type GetFileRequest struct {
 	Key string `json:"key"`
 }
 
+type GetUploadLinkRequest struct {
+	Key      string `json:"key"`
+	TempFile bool   `json:"tempFile"`
+}
+
 // GetFileResponse represents the JSON structure for get file response
 type GetFileResponse struct {
 	Content string `json:"content"`
@@ -162,6 +167,7 @@ type GetLinkResponse struct {
 // PutFileRequest represents the JSON structure for put file operations
 type PutFileRequest struct {
 	Key      string `json:"key"`
+	TempFile bool   `json:"tempFile"`
 	Content  string `json:"content"`
 	FilePath string `json:"filePath"`
 }
@@ -171,8 +177,9 @@ type DeleteFileRequest struct {
 }
 
 type RenameFileRequest struct {
-	OldKey string `json:"oldKey"`
-	NewKey string `json:"newKey"`
+	OldKey   string `json:"oldKey"`
+	NewKey   string `json:"newKey"`
+	TempFile bool   `json:"tempFile"`
 }
 
 type CreateFolderRequest struct {
@@ -397,7 +404,7 @@ func (sc *ServiceClient) PutFile(sessionId string, req PutFileRequest) error {
 	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/put", req)
 }
 
-func (sc *ServiceClient) GetFileUploadLink(sessionId string, req GetFileRequest) (GetLinkResponse, error) {
+func (sc *ServiceClient) GetFileUploadLink(sessionId string, req GetUploadLinkRequest) (GetLinkResponse, error) {
 	var res GetLinkResponse
 	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/file/get-upload-link", req, &res)
 	return res, err

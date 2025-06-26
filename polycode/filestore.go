@@ -88,8 +88,27 @@ func (d FileStore) Save(path string, data []byte) error {
 	// Encode the data as base64
 	base64Data := base64.StdEncoding.EncodeToString(data)
 	req := PutFileRequest{
-		Key:     path,
-		Content: base64Data,
+		Key:      path,
+		TempFile: false,
+		Content:  base64Data,
+	}
+
+	err := d.client.PutFile(d.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to put file: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (d FileStore) SaveTemp(path string, data []byte) error {
+	// Encode the data as base64
+	base64Data := base64.StdEncoding.EncodeToString(data)
+	req := PutFileRequest{
+		Key:      path,
+		TempFile: true,
+		Content:  base64Data,
 	}
 
 	err := d.client.PutFile(d.sessionId, req)
@@ -104,6 +123,23 @@ func (d FileStore) Save(path string, data []byte) error {
 func (d FileStore) Upload(path string, filePath string) error {
 	req := PutFileRequest{
 		Key:      path,
+		TempFile: false,
+		FilePath: filePath,
+	}
+
+	err := d.client.PutFile(d.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to put file: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (d FileStore) UploadTemp(path string, filePath string) error {
+	req := PutFileRequest{
+		Key:      path,
+		TempFile: true,
 		FilePath: filePath,
 	}
 
@@ -117,8 +153,28 @@ func (d FileStore) Upload(path string, filePath string) error {
 }
 
 func (d FileStore) GetUploadLink(path string) (string, error) {
-	req := GetFileRequest{
-		Key: path,
+	req := GetUploadLinkRequest{
+		Key:      path,
+		TempFile: false,
+	}
+
+	res, err := d.client.GetFileUploadLink(d.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to get file link: %s\n", err.Error())
+		return "", err
+	}
+
+	if res.Link == "" {
+		return "", errors.New("empty link")
+	}
+
+	return res.Link, nil
+}
+
+func (d FileStore) GetTempUploadLink(path string) (string, error) {
+	req := GetUploadLinkRequest{
+		Key:      path,
+		TempFile: true,
 	}
 
 	res, err := d.client.GetFileUploadLink(d.sessionId, req)
@@ -206,8 +262,27 @@ func (f Folder) Save(name string, data []byte) error {
 	// Encode the data as base64
 	base64Data := base64.StdEncoding.EncodeToString(data)
 	req := PutFileRequest{
-		Key:     f.name + "/" + name,
-		Content: base64Data,
+		Key:      f.name + "/" + name,
+		TempFile: false,
+		Content:  base64Data,
+	}
+
+	err := f.client.PutFile(f.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to put file: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (f Folder) SaveTemp(name string, data []byte) error {
+	// Encode the data as base64
+	base64Data := base64.StdEncoding.EncodeToString(data)
+	req := PutFileRequest{
+		Key:      f.name + "/" + name,
+		TempFile: true,
+		Content:  base64Data,
 	}
 
 	err := f.client.PutFile(f.sessionId, req)
@@ -222,6 +297,23 @@ func (f Folder) Save(name string, data []byte) error {
 func (f Folder) Upload(name string, filePath string) error {
 	req := PutFileRequest{
 		Key:      f.name + "/" + name,
+		TempFile: false,
+		FilePath: filePath,
+	}
+
+	err := f.client.PutFile(f.sessionId, req)
+	if err != nil {
+		fmt.Printf("failed to put file: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (f Folder) UploadTemp(name string, filePath string) error {
+	req := PutFileRequest{
+		Key:      f.name + "/" + name,
+		TempFile: true,
 		FilePath: filePath,
 	}
 
