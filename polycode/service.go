@@ -349,9 +349,5 @@ func (f Memo) Get() Response {
 		}
 	}
 
-	return Response{
-		output:  output,
-		isError: false,
-		error:   Error{},
-	}
+	return response
 }
