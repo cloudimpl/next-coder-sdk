@@ -47,6 +47,7 @@ type ApiContext interface {
 
 type RawContext interface {
 	BaseContext
+	GetMeta(group string, typeName string, key string) (map[string]interface{}, error)
 	Counter(group string, name string, ttl int64) Counter
 }
 
@@ -185,6 +186,16 @@ func (s ContextImpl) Lock(key string) Lock {
 		sessionId: s.sessionId,
 		key:       key,
 	}
+}
+
+func (s ContextImpl) GetMeta(group string, typeName string, key string) (map[string]interface{}, error) {
+	req := GetMetaDataRequest{
+		Group: group,
+		Type:  typeName,
+		Key:   key,
+	}
+
+	return s.serviceClient.GetMeta(s.sessionId, req)
 }
 
 func (s ContextImpl) Counter(group string, name string, ttl int64) Counter {

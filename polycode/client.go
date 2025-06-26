@@ -224,6 +224,12 @@ type SignalWaitResponse struct {
 	Error   Error `json:"error"`
 }
 
+type GetMetaDataRequest struct {
+	Group string `json:"group"`
+	Type  string `json:"type"`
+	Key   string `json:"key"`
+}
+
 type IncrementCounterRequest struct {
 	Group string `json:"group"`
 	Name  string `json:"name"`
@@ -426,7 +432,7 @@ func (sc *ServiceClient) WaitForSignal(sessionId string, req SignalWaitRequest) 
 }
 
 func (sc *ServiceClient) EmitRealtimeEvent(sessionId string, req RealtimeEventEmitRequest) error {
-	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/realtime/event/emit", req)
+	return executeApiWithoutResponse(sc.httpClient, sc.baseURL, sessionId, "v1/context/realtime/event/emit", req)
 }
 
 func (sc *ServiceClient) AcquireLock(sessionId string, req AcquireLockRequest) error {
@@ -439,7 +445,13 @@ func (sc *ServiceClient) ReleaseLock(sessionId string, req ReleaseLockRequest) e
 
 func (sc *ServiceClient) IncrementCounter(sessionId string, req IncrementCounterRequest) (IncrementCounterResponse, error) {
 	var res IncrementCounterResponse
-	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/utils/counter/increment", req, &res)
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/elevated/context/counter/increment", req, &res)
+	return res, err
+}
+
+func (sc *ServiceClient) GetMeta(sessionId string, req GetMetaDataRequest) (map[string]interface{}, error) {
+	var res map[string]interface{}
+	err := executeApiWithResponse(sc.httpClient, sc.baseURL, sessionId, "v1/elevated/context/meta/get", req, &res)
 	return res, err
 }
 
