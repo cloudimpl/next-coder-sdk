@@ -50,12 +50,14 @@ func (u UnsafeDataStore) Collection(name string) UnsafeCollection {
 	}
 }
 
-func (u UnsafeDataStore) GlobalCollection(name string) Collection {
-	return Collection{
-		client:    u.client,
-		sessionId: u.sessionId,
-		name:      name,
-		isGlobal:  true,
+func (u UnsafeDataStore) GlobalCollection(name string) UnsafeCollection {
+	return UnsafeCollection{
+		client:       u.client,
+		sessionId:    u.sessionId,
+		tenantId:     u.tenantId,
+		partitionKey: u.partitionKey,
+		name:         name,
+		isGlobal:     true,
 	}
 }
 
