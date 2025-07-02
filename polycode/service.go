@@ -286,6 +286,28 @@ func (r RemoteController) RequestReply(options TaskOptions, path string, apiReq 
 	return output.Response, nil
 }
 
+func (r RemoteController) Send(options TaskOptions, path string, apiReq ApiRequest) error {
+	req := ExecApiRequest{
+		EnvId:         r.envId,
+		Controller:    r.controller,
+		Path:          path,
+		Options:       options,
+		FireAndForget: true,
+		Request:       apiReq,
+	}
+
+	output, err := r.serviceClient.ExecApi(r.sessionId, req)
+	if err != nil {
+		return err
+	}
+
+	if output.IsError {
+		return output.Error
+	}
+
+	return nil
+}
+
 type Memo struct {
 	ctx           context.Context
 	sessionId     string

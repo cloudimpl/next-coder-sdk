@@ -75,11 +75,12 @@ type ExecAppResponse struct {
 }
 
 type ExecApiRequest struct {
-	EnvId      string      `json:"envId"`
-	Controller string      `json:"controller"`
-	Path       string      `json:"path"`
-	Options    TaskOptions `json:"options"`
-	Request    ApiRequest  `json:"request"`
+	EnvId         string      `json:"envId"`
+	Controller    string      `json:"controller"`
+	Path          string      `json:"path"`
+	Options       TaskOptions `json:"options"`
+	FireAndForget bool        `json:"fireAndForget"`
+	Request       ApiRequest  `json:"request"`
 }
 
 type ExecApiExtendedRequest struct {
