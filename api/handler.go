@@ -28,7 +28,7 @@ func FromWorkflow[Input any, Output any](f func(polycode.WorkflowContext, Input)
 		err = polycode.GetValidator().Validate(input)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid request",
+				"error": err.Error(),
 			})
 			return
 		}
